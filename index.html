@@ -279,6 +279,11 @@
       }
     }
   </style>
+
+  <!-- Firebase Cloud Sync SDK (Instant Real-time Cross-Device Sync) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body class="bg-surface-container-lowest text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary min-h-screen relative overflow-x-hidden">
 
@@ -702,7 +707,7 @@
         <!-- Ezra -->
         <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img alt="Ezra, Visioner &amp; Lead Psalmist" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" loading="lazy" src="Images/thumb-1.webp">
+            <img alt="Ezra, Visioner &amp; Lead Psalmist" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="Images/ezra.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Visioner &amp; Lead Psalmist</span>
@@ -714,7 +719,7 @@
         <!-- Tammy -->
         <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Portrait of Tammy by keyboards" src="Images/thumb-2.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Portrait of Tammy by keyboards" src="Images/tammy.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Music Director &amp; Keyboards</span>
@@ -726,7 +731,7 @@
         <!-- Samuel Thompson -->
         <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Samuel Thompson playing acoustic guitar" src="Images/thumb-3.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Samuel Thompson playing acoustic guitar" src="Images/samuel-thompson.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
@@ -738,7 +743,7 @@
         <!-- Future Johnson -->
         <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Future Johnson vocal ministry" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoeunkYcyl37ngZZySr4eNe53dBq7iHk9b5zZkmh9uG_5HrQ-D-U4iRsBoWdgBQy5d17zX3OyY8MLd6Z-38jmVzHLpmjd_Vhdz8d2nIv9g_cAa0Pk5Rwl2nT5-hXPz-ge3Wdsi-HEwX4TCX5rlZIbKHyj_xI6fVvG_KvUzLOUBNJ7YyRjVKjM_mUbbBBuhpgJd5FnOOZmVO4XgUug5HWjE8eIH470WjZiqJN3vho7y_jhV1o9L-FUV">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Future Johnson vocal ministry" src="Images/future-johnson.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
@@ -750,7 +755,7 @@
         <!-- Believe -->
         <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Believe strings and vocal harmonies" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWpj5a_9jNEzBsQKjP82jdigivJU9XkklLr4Lp8OVvN-B-iV5L-Vzt5nbM4js3cGmxQ7StU1wusJ7za69fLTJ_y9WcmFOleeYccQvgXW_FoIyO_QWitcrklgk37LfCoCpMm5JE9h1Su4hhrf9GHXDZdsfZnyUUDG6sauEE9tw_BAee3Xv_X95N0wKyheoPz9gCgLeuU-19HnpPtC6xwaU9y7_yZbfFgedHyiuIiHRaJHQKmWoPwpRI">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Believe strings and vocal harmonies" src="Images/believe.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
@@ -762,7 +767,7 @@
         <!-- Soye West -->
         <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Soye West drums and rhythm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO6XyYlNrLV16tH5Kwc63XGqJzbLj9PR0dW_x-ZxropFkQrJXO8qTEyZyKZJ6dIlE0_Um1npngDn3FqR0rcMXYDbGVF7IislaPNe_LAd4bLSxk-aOzASu0VtjvxrHsReE50MumhFRD4s-blL0FO8cuRTscPgGgOzgiMHwsJrw_WcOixH0vznlx4uxs9h7b6z__yxQKeaq4aS_hBlq8bHlOXfQmm2pzLfULYAqNwWHcEKQooUf6IE9z">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Soye West drums and rhythm" src="Images/soye-west.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
@@ -1239,22 +1244,31 @@
     let eventAlbumsData = {};
 
     async function loadEventsData() {
-      // 1. Check if steward has local modifications
+      // 1. Initial render from local cache if present (for instantaneous UX)
       let localEvents = null;
       try {
         const stored = localStorage.getItem('faith_events_store');
         if (stored !== null) localEvents = JSON.parse(stored);
       } catch (e) {}
 
-      // If steward has explicitly stored events (even an empty array []), respect it!
-      if (localEvents !== null && Array.isArray(localEvents)) {
+      if (localEvents !== null && Array.isArray(localEvents) && localEvents.length > 0) {
         renderGatheringsGrid(localEvents);
         renderEventAlbums(localEvents);
         renderTargetGatheringOptions(localEvents);
-        return;
       }
 
-      // 2. Try fetching from active server API
+      // 2. Real-time Cloud Sync (Firestore) - Updates live across all devices
+      if (window.FaithRoomCloud) {
+        window.FaithRoomCloud.listenEvents((cloudEvents) => {
+          if (Array.isArray(cloudEvents) && cloudEvents.length > 0) {
+            renderGatheringsGrid(cloudEvents);
+            renderEventAlbums(cloudEvents);
+            renderTargetGatheringOptions(cloudEvents);
+          }
+        }, localEvents || []);
+      }
+
+      // 3. Try fetching from serverless API
       try {
         const res = await fetch('/api/events');
         if (res.ok) {
@@ -1985,7 +1999,12 @@
           intent: intent
         };
 
-        // Try sending to local backend server if active
+        // 1. Send to Cloud Firestore for real-time cross-device sync
+        if (window.FaithRoomCloud) {
+          window.FaithRoomCloud.submitReservation(newPassPayload);
+        }
+
+        // 2. Try sending to serverless API endpoint
         try {
           const res = await fetch('/api/reservations', {
             method: 'POST',

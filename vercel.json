@@ -2,9 +2,7 @@
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/api/events", "destination": "/data/events.json" },
-    { "source": "/api/reservations", "destination": "/data/reservations.json" }
+    { "source": "/admin", "destination": "/admin.html" }
   ],
   "headers": [
     {
