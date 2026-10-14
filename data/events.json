@@ -1,0 +1,80 @@
+[
+  {
+    "id": "album-1",
+    "title": "The Upper Room Encounter Vol. 2",
+    "category": "live",
+    "categoryLabel": "SANCTUARY LIVE SESSION",
+    "dateText": "Upcoming Friday • 6:00 PM",
+    "venueText": "Secret Sanctuary, Lagos / Online Stream",
+    "maxPhysicalSeats": 30,
+    "bookedPhysicalSeats": 14,
+    "description": "An uninterrupted three-hour deep dive of spontaneous psalms, strings, and collective intercession.",
+    "coverImage": "Images/hero-1.webp",
+    "photos": [
+      {
+        "src": "Images/hero-1.webp",
+        "title": "Minister Ezra Leading in Deep Intercession",
+        "desc": "Eyes closed in holy reverence, ushering worshippers before the altar of presence."
+      },
+      {
+        "src": "Images/hero-2.webp",
+        "title": "Sanctuary Choir in Spiritual Unity",
+        "desc": "Vocalists weaving intricate three-part harmonies under warm stage illumination."
+      },
+      {
+        "src": "Images/hero-3.webp",
+        "title": "The Cry of Deliverance",
+        "desc": "Prophetic psalms bursting forth in uninhibited worship."
+      },
+      {
+        "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuCObNtYaN4SOmrPJU6decK92zju1sdoVgOBYiuvZWZen5ytZ1lTKv1sZiyyYIERwznXlanhbHSBzFpLmTV2BxeXxwk3T-GgjJ5D23aZRyJRKCWDjIZDA4b6DPc65RJfKIsqnPDRFtlQPD_OuQFDGsrLuloiVPokGMzyuKhvcmz_zv9FN-9am8TG1DRdT_KdkEgfnjt4hHgeWOJqEbQ6qsMmdmuxdm3sXLHk4VdWbyjX8nrNbwBBJmXd",
+        "title": "Lifted Hands in the Sanctuary",
+        "desc": "Congregational adoration responding to the sound from heaven."
+      },
+      {
+        "src": "Images/thumb-2.webp",
+        "title": "Harmonic Keys & Synth Pads",
+        "desc": "Architecting dynamic tonal atmospheres for spontaneous spiritual flow."
+      },
+      {
+        "src": "Images/thumb-3.webp",
+        "title": "Acoustic Strings & Cello",
+        "desc": "Warm acoustic frequencies resonating through the auditorium."
+      }
+    ]
+  },
+  {
+    "id": "album-2",
+    "title": "Outpouring & Overflow Session",
+    "category": "recording",
+    "categoryLabel": "ALBUM RECORDING SESSION",
+    "dateText": "Next Month • 7:00 PM",
+    "venueText": "Main Sanctuary Room / 4K Live Broadcast",
+    "maxPhysicalSeats": 30,
+    "bookedPhysicalSeats": 9,
+    "description": "Live audio & video capture of the upcoming Faith Room 2026 Anthem compilation with the full ministry ensemble.",
+    "coverImage": "Images/hero-2.webp",
+    "photos": [
+      {
+        "src": "Images/hero-2.webp",
+        "title": "Sanctuary Anthem Recording",
+        "desc": "Ensemble vocalists releasing newly penned worship anthems live in the studio sanctuary."
+      },
+      {
+        "src": "Images/hero-1.webp",
+        "title": "Psalmist Leadership",
+        "desc": "Minister Ezra directing the room through prophetic shifts and unwritten choruses."
+      },
+      {
+        "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoeunkYcyl37ngZZySr4eNe53dBq7iHk9b5zZkmh9uG_5HrQ-D-U4iRsBoWdgBQy5d17zX3OyY8MLd6Z-38jmVzHLpmjd_Vhdz8d2nIv9g_cAa0Pk5Rwl2nT5-hXPz-ge3Wdsi-HEwX4TCX5rlZIbKHyj_xI6fVvG_KvUzLOUBNJ7YyRjVKjM_mUbbBBuhpgJd5FnOOZmVO4XgUug5HWjE8eIH470WjZiqJN3vho7y_jhV1o9L-FUV",
+        "title": "Choir Passion & Rim Lighting",
+        "desc": "Theatrical darkness contrasting warm amber spotlights."
+      },
+      {
+        "src": "Images/thumb-3.webp",
+        "title": "Acoustic Guitarist Close-up",
+        "desc": "Pure acoustic tones carrying the contemplative melody."
+      }
+    ]
+  }
+]
