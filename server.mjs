@@ -137,7 +137,49 @@ function handleApi(req, res, pathname, parsedUrl) {
     return;
   }
 
-  // 3a. DELETE /api/events/:id/photos/:photoIndex (Delete individual photo)
+  // 2b. PUT /api/events/:id (Update existing event)
+  const putEventMatch = pathname.match(/^\/api\/events\/([^\/]+)$/);
+  if (req.method === 'PUT' && putEventMatch) {
+    const id = putEventMatch[1];
+    parseBody((err, updatedData) => {
+      if (err) {
+        sendJson(400, { error: 'Invalid JSON data.' });
+        return;
+      }
+      const events = readJson(EVENTS_FILE);
+      const index = events.findIndex(e => e.id === id);
+      if (index === -1) {
+        sendJson(404, { error: 'Event not found.' });
+        return;
+      }
+
+      events[index] = {
+        ...events[index],
+        title: updatedData.title !== undefined ? updatedData.title : events[index].title,
+        category: updatedData.category !== undefined ? updatedData.category : events[index].category,
+        categoryLabel: updatedData.categoryLabel !== undefined ? updatedData.categoryLabel : events[index].categoryLabel,
+        maxPhysicalSeats: updatedData.maxPhysicalSeats !== undefined ? parseInt(updatedData.maxPhysicalSeats, 10) : events[index].maxPhysicalSeats,
+        dateText: updatedData.dateText !== undefined ? updatedData.dateText : events[index].dateText,
+        venueText: updatedData.venueText !== undefined ? updatedData.venueText : events[index].venueText,
+        description: updatedData.description !== undefined ? updatedData.description : events[index].description,
+        coverImage: updatedData.coverImage || events[index].coverImage,
+        photos: events[index].photos || []
+      };
+
+      writeJson(EVENTS_FILE, events);
+      sendJson(200, { success: true, event: events[index] });
+    });
+    return;
+  }
+
+  // 3a. DELETE /api/events (Bulk delete all events)
+  if (req.method === 'DELETE' && pathname === '/api/events') {
+    writeJson(EVENTS_FILE, []);
+    sendJson(200, { success: true, message: 'All events deleted', remaining: 0 });
+    return;
+  }
+
+  // 3b. DELETE /api/events/:id/photos/:photoIndex (Delete individual photo)
   const photoMatch = pathname.match(/^\/api\/events\/([^\/]+)\/photos\/(\d+)$/);
   if (req.method === 'DELETE' && photoMatch) {
     const eventId = photoMatch[1];
@@ -162,7 +204,7 @@ function handleApi(req, res, pathname, parsedUrl) {
     return;
   }
 
-  // 3b. DELETE /api/events/:id/photos (Delete all photos in an album)
+  // 3c. DELETE /api/events/:id/photos (Delete all photos in an album)
   const clearPhotosMatch = pathname.match(/^\/api\/events\/([^\/]+)\/photos$/);
   if (req.method === 'DELETE' && clearPhotosMatch) {
     const eventId = clearPhotosMatch[1];
@@ -181,9 +223,10 @@ function handleApi(req, res, pathname, parsedUrl) {
     return;
   }
 
-  // 3c. DELETE /api/events/:id
-  if (req.method === 'DELETE' && pathname.startsWith('/api/events/')) {
-    const id = pathname.replace('/api/events/', '');
+  // 3d. DELETE /api/events/:id (Delete single event)
+  const deleteEventMatch = pathname.match(/^\/api\/events\/([^\/]+)$/);
+  if (req.method === 'DELETE' && deleteEventMatch) {
+    const id = deleteEventMatch[1];
     let events = readJson(EVENTS_FILE);
     events = events.filter(e => e.id !== id);
     writeJson(EVENTS_FILE, events);

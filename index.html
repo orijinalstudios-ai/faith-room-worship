@@ -1243,8 +1243,16 @@
       let localEvents = null;
       try {
         const stored = localStorage.getItem('faith_events_store');
-        if (stored) localEvents = JSON.parse(stored);
+        if (stored !== null) localEvents = JSON.parse(stored);
       } catch (e) {}
+
+      // If steward has explicitly stored events (even an empty array []), respect it!
+      if (localEvents !== null && Array.isArray(localEvents)) {
+        renderGatheringsGrid(localEvents);
+        renderEventAlbums(localEvents);
+        renderTargetGatheringOptions(localEvents);
+        return;
+      }
 
       // 2. Try fetching from active server API
       try {
@@ -1255,18 +1263,11 @@
             renderGatheringsGrid(events);
             renderEventAlbums(events);
             renderTargetGatheringOptions(events);
+            localStorage.setItem('faith_events_store', JSON.stringify(events));
             return;
           }
         }
       } catch (e) {}
-
-      // 3. If steward has local events stored, use them
-      if (localEvents && Array.isArray(localEvents) && localEvents.length > 0) {
-        renderGatheringsGrid(localEvents);
-        renderEventAlbums(localEvents);
-        renderTargetGatheringOptions(localEvents);
-        return;
-      }
 
       // 4. Try fetching static data/events.json file (for static online deployments)
       try {
@@ -1443,8 +1444,19 @@
 
     function renderEventAlbums(events) {
       const container = document.getElementById('eventAlbumsGrid');
+      if (!container) return;
       container.innerHTML = '';
       eventAlbumsData = {};
+
+      if (!events || events.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-text-muted">
+            <span class="material-symbols-outlined text-4xl text-primary/60 mb-2 block">photo_library</span>
+            <p class="font-body-sm text-sm">No photo albums uploaded yet.</p>
+          </div>
+        `;
+        return;
+      }
 
       events.forEach((ev, idx) => {
         eventAlbumsData[ev.id] = ev;
@@ -1508,6 +1520,15 @@
       const select = document.getElementById('targetGathering');
       if (!select) return;
       select.innerHTML = '';
+
+      if (!events || events.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No active gatherings announced yet';
+        select.appendChild(opt);
+        return;
+      }
+
       events.forEach(ev => {
         const opt = document.createElement('option');
         opt.value = ev.title;

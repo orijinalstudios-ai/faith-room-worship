@@ -139,12 +139,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h3 class="font-headline text-xl text-text-primary font-bold">Manage Gatherings</h3>
-            <p class="text-xs text-text-muted mt-0.5">Create new holy encounters and configure attendance limits.</p>
+            <p class="text-xs text-text-muted mt-0.5">Create, edit, or delete holy encounters and configure attendance limits.</p>
           </div>
-          <button id="openNewEventModalBtn" class="px-4 py-2.5 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 flex items-center gap-1.5 cursor-pointer">
-            <span class="material-symbols-outlined text-sm">add_circle</span>
-            Create New Gathering
-          </button>
+          <div class="flex items-center gap-3">
+            <button id="deleteAllEventsBtn" type="button" class="px-3.5 py-2.5 bg-surface-elevated hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-500/60 font-label text-xs uppercase font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer" title="Delete all gatherings and photo albums">
+              <span class="material-symbols-outlined text-sm">delete_sweep</span>
+              Delete All
+            </button>
+            <button id="openNewEventModalBtn" type="button" class="px-4 py-2.5 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 flex items-center gap-1.5 cursor-pointer">
+              <span class="material-symbols-outlined text-sm">add_circle</span>
+              Create New Gathering
+            </button>
+          </div>
         </div>
 
         <!-- Events List Table / Cards -->
@@ -278,17 +284,18 @@
     </main>
   </div>
 
-  <!-- ==================== NEW EVENT MODAL ==================== -->
-  <div id="newEventModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+  <!-- ==================== GATHERING MODAL (CREATE / EDIT) ==================== -->
+  <div id="eventModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
     <div class="relative w-full max-w-xl bg-surface-charcoal border border-surface-border rounded-2xl p-6 sm:p-8 shadow-2xl">
-      <button id="closeNewEventModalBtn" class="absolute top-5 right-5 text-text-muted hover:text-text-primary p-1.5 rounded-full bg-surface-elevated cursor-pointer">
+      <button id="closeEventModalBtn" type="button" class="absolute top-5 right-5 text-text-muted hover:text-text-primary p-1.5 rounded-full bg-surface-elevated cursor-pointer">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
 
-      <h3 class="font-headline text-xl text-text-primary font-bold mb-1">Create New Holy Gathering</h3>
-      <p class="text-xs text-text-muted mb-6">Define gathering date, physical seat capacity, and initial details.</p>
+      <h3 class="font-headline text-xl text-text-primary font-bold mb-1" id="eventModalTitle">Create New Holy Gathering</h3>
+      <p class="text-xs text-text-muted mb-6" id="eventModalSubtitle">Define gathering date, physical seat capacity, and initial details.</p>
 
-      <form id="newEventForm" class="space-y-4">
+      <form id="eventForm" class="space-y-4">
+        <input type="hidden" id="editingEventId" value="">
         <div>
           <label class="block text-xs font-label uppercase tracking-wider text-text-muted mb-1.5 font-semibold" for="eventTitleInput">Gathering Title</label>
           <input type="text" id="eventTitleInput" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-4 py-2.5 text-text-primary text-sm focus:border-primary focus:outline-none" placeholder="e.g. Night of Prophetic Worship" required>
@@ -326,7 +333,7 @@
           <textarea id="eventDescInput" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-4 py-2.5 text-text-primary text-sm focus:border-primary focus:outline-none resize-none" rows="3" placeholder="Describe the spiritual focus and sound of this gathering..." required></textarea>
         </div>
 
-        <button type="submit" class="w-full py-3 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer">
+        <button type="submit" id="eventModalSubmitBtn" class="w-full py-3 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer">
           Save &amp; Publish Gathering
         </button>
       </form>
@@ -585,10 +592,10 @@
         } catch (e) {}
       }
 
-      // Tier 3 & 4: Resolve events
-      if (localEvents && Array.isArray(localEvents) && localEvents.length > 0) {
+      // Tier 3 & 4: Resolve events (Respects steward's intentional empty state)
+      if (localEvents !== null && Array.isArray(localEvents)) {
         currentEvents = localEvents;
-      } else if (apiEvents && Array.isArray(apiEvents) && apiEvents.length > 0) {
+      } else if (apiEvents && Array.isArray(apiEvents)) {
         currentEvents = apiEvents;
         localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
       } else {
@@ -640,7 +647,17 @@
       container.innerHTML = '';
 
       if (currentEvents.length === 0) {
-        container.innerHTML = `<p class="text-text-muted col-span-3 text-sm">No gatherings created yet.</p>`;
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 bg-surface-charcoal/50 border border-surface-border rounded-2xl p-8">
+            <span class="material-symbols-outlined text-4xl text-primary/60 mb-2 block">event_busy</span>
+            <h4 class="font-headline text-base text-text-primary font-bold mb-1">No Gatherings Found</h4>
+            <p class="text-xs text-text-muted mb-4 max-w-sm mx-auto">All gatherings have been cleared or none have been published yet.</p>
+            <button type="button" onclick="openNewEventModal()" class="px-4 py-2 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer inline-flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">add_circle</span>
+              Create First Gathering
+            </button>
+          </div>
+        `;
         return;
       }
 
@@ -671,23 +688,39 @@
           </div>
           <div class="p-5 pt-0 flex items-center justify-between border-t border-surface-border/40 mt-3 pt-3">
             <span class="text-[11px] text-text-muted">${(event.photos || []).length} photos in album</span>
-            <button class="delete-event-btn text-xs text-rose-400 hover:text-rose-300 font-label uppercase cursor-pointer" data-id="${event.id}">Delete</button>
+            <div class="flex items-center gap-3">
+              <button type="button" class="edit-event-btn text-xs text-primary hover:text-amber-300 font-label uppercase font-bold cursor-pointer transition-colors" data-id="${event.id}">Edit</button>
+              <button type="button" class="delete-event-btn text-xs text-rose-400 hover:text-rose-300 font-label uppercase cursor-pointer transition-colors" data-id="${event.id}">Delete</button>
+            </div>
           </div>
         `;
         container.appendChild(card);
+      });
+
+      // Attach edit listeners
+      container.querySelectorAll('.edit-event-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const ev = currentEvents.find(e => e.id === id);
+          if (ev) openEditEventModal(ev);
+        });
       });
 
       // Attach delete listeners
       container.querySelectorAll('.delete-event-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.dataset.id;
-          if (confirm('Are you sure you want to delete this gathering?')) {
+          const target = currentEvents.find(e => e.id === id);
+          const name = target ? target.title : 'this gathering';
+          if (confirm(`Are you sure you want to delete "${name}"?`)) {
             try {
               await fetch(`/api/events/${id}`, { method: 'DELETE' });
             } catch(e) {}
             currentEvents = currentEvents.filter(e => e.id !== id);
             localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
-            loadAllDashboardData();
+            updateStatsUI();
+            renderEventsUI();
+            renderPhotoEventOptions();
             showAdminToast('Gathering deleted successfully.');
           }
         });
@@ -698,6 +731,16 @@
     function renderPhotoEventOptions() {
       const select = document.getElementById('photoEventSelect');
       select.innerHTML = '';
+
+      if (currentEvents.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No gatherings created yet';
+        select.appendChild(opt);
+        renderCurrentAlbumPhotos(null);
+        return;
+      }
+
       currentEvents.forEach(e => {
         const opt = document.createElement('option');
         opt.value = e.id;
@@ -705,14 +748,12 @@
         select.appendChild(opt);
       });
 
-      if (currentEvents.length > 0) {
-        renderCurrentAlbumPhotos(currentEvents[0].id);
-      }
-
-      select.addEventListener('change', () => {
-        renderCurrentAlbumPhotos(select.value);
-      });
+      renderCurrentAlbumPhotos(select.value || currentEvents[0].id);
     }
+
+    document.getElementById('photoEventSelect').addEventListener('change', (e) => {
+      renderCurrentAlbumPhotos(e.target.value);
+    });
 
     function renderCurrentAlbumPhotos(eventId) {
       const event = currentEvents.find(e => e.id === eventId);
@@ -961,55 +1002,144 @@
       showAdminToast('Guestlist CSV exported!');
     });
 
-    // Create New Event Modal & Form
-    const newEventModal = document.getElementById('newEventModal');
-    document.getElementById('openNewEventModalBtn').addEventListener('click', () => {
-      newEventModal.classList.remove('hidden');
-      newEventModal.classList.add('flex');
-    });
+    // Gathering Modal (Create & Edit)
+    const eventModal = document.getElementById('eventModal');
+    const eventForm = document.getElementById('eventForm');
+    const editingEventId = document.getElementById('editingEventId');
+    const openNewEventModalBtn = document.getElementById('openNewEventModalBtn');
+    const closeEventModalBtn = document.getElementById('closeEventModalBtn');
+    const eventModalTitle = document.getElementById('eventModalTitle');
+    const eventModalSubtitle = document.getElementById('eventModalSubtitle');
+    const eventModalSubmitBtn = document.getElementById('eventModalSubmitBtn');
 
-    document.getElementById('closeNewEventModalBtn').addEventListener('click', () => {
-      newEventModal.classList.add('hidden');
-      newEventModal.classList.remove('flex');
-    });
+    function openNewEventModal() {
+      eventModalTitle.textContent = 'Create New Holy Gathering';
+      eventModalSubtitle.textContent = 'Define gathering date, physical seat capacity, and initial details.';
+      eventModalSubmitBtn.textContent = 'Save & Publish Gathering';
+      editingEventId.value = '';
+      eventForm.reset();
+      document.getElementById('eventPhysicalSeatsInput').value = '30';
+      document.getElementById('eventVenueTextInput').value = 'Secret Sanctuary, Lagos / Online Stream';
+      eventModal.classList.remove('hidden');
+      eventModal.classList.add('flex');
+    }
 
-    document.getElementById('newEventForm').addEventListener('submit', async (e) => {
+    function openEditEventModal(ev) {
+      eventModalTitle.textContent = 'Edit Holy Gathering';
+      eventModalSubtitle.textContent = `Updating details for "${ev.title}"`;
+      eventModalSubmitBtn.textContent = 'Update Gathering';
+      editingEventId.value = ev.id;
+      document.getElementById('eventTitleInput').value = ev.title || '';
+      document.getElementById('eventCategorySelect').value = ev.category || 'live';
+      document.getElementById('eventPhysicalSeatsInput').value = ev.maxPhysicalSeats || 30;
+      document.getElementById('eventDateTextInput').value = ev.dateText || '';
+      document.getElementById('eventVenueTextInput').value = ev.venueText || 'Secret Sanctuary, Lagos / Online Stream';
+      document.getElementById('eventDescInput').value = ev.description || '';
+      eventModal.classList.remove('hidden');
+      eventModal.classList.add('flex');
+    }
+
+    function closeEventModal() {
+      eventModal.classList.add('hidden');
+      eventModal.classList.remove('flex');
+      editingEventId.value = '';
+      eventForm.reset();
+    }
+
+    if (openNewEventModalBtn) openNewEventModalBtn.addEventListener('click', openNewEventModal);
+    if (closeEventModalBtn) closeEventModalBtn.addEventListener('click', closeEventModal);
+
+    eventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const newEvent = {
-        id: `album-${Date.now()}`,
+      const isEditing = Boolean(editingEventId.value);
+      const catSelect = document.getElementById('eventCategorySelect');
+
+      const eventPayload = {
         title: document.getElementById('eventTitleInput').value.trim(),
-        category: document.getElementById('eventCategorySelect').value,
-        categoryLabel: document.getElementById('eventCategorySelect').selectedOptions[0].text.toUpperCase(),
+        category: catSelect.value,
+        categoryLabel: catSelect.selectedOptions[0].text.toUpperCase(),
         maxPhysicalSeats: parseInt(document.getElementById('eventPhysicalSeatsInput').value, 10) || 30,
-        bookedPhysicalSeats: 0,
         dateText: document.getElementById('eventDateTextInput').value.trim(),
         venueText: document.getElementById('eventVenueTextInput').value.trim(),
-        description: document.getElementById('eventDescInput').value.trim(),
-        coverImage: 'Images/hero-1.webp',
-        photos: []
+        description: document.getElementById('eventDescInput').value.trim()
       };
 
-      let apiSuccess = false;
-      try {
-        const res = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newEvent)
-        });
-        if (res.ok) apiSuccess = true;
-      } catch (err) {}
+      if (isEditing) {
+        const targetId = editingEventId.value;
+        const index = currentEvents.findIndex(ev => ev.id === targetId);
+        if (index !== -1) {
+          currentEvents[index] = {
+            ...currentEvents[index],
+            ...eventPayload
+          };
+        }
 
-      currentEvents.unshift(newEvent);
-      localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
-      showAdminToast(apiSuccess ? 'New Gathering published!' : 'New Gathering saved to portal!');
+        let apiSuccess = false;
+        try {
+          const res = await fetch(`/api/events/${targetId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventPayload)
+          });
+          if (res.ok) apiSuccess = true;
+        } catch (err) {}
 
-      newEventModal.classList.add('hidden');
-      newEventModal.classList.remove('flex');
-      document.getElementById('newEventForm').reset();
+        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+        showAdminToast(apiSuccess ? 'Gathering updated successfully!' : 'Gathering changes saved locally!');
+      } else {
+        const newEvent = {
+          id: `album-${Date.now()}`,
+          ...eventPayload,
+          bookedPhysicalSeats: 0,
+          coverImage: 'Images/hero-1.webp',
+          photos: []
+        };
+
+        let apiSuccess = false;
+        try {
+          const res = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newEvent)
+          });
+          if (res.ok) apiSuccess = true;
+        } catch (err) {}
+
+        currentEvents.unshift(newEvent);
+        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+        showAdminToast(apiSuccess ? 'New Gathering published!' : 'New Gathering saved to portal!');
+      }
+
+      closeEventModal();
       updateStatsUI();
       renderEventsUI();
       renderPhotoEventOptions();
     });
+
+    // Delete All Events Button Handler
+    const deleteAllEventsBtn = document.getElementById('deleteAllEventsBtn');
+    if (deleteAllEventsBtn) {
+      deleteAllEventsBtn.addEventListener('click', async () => {
+        if (currentEvents.length === 0) {
+          showAdminToast('No gatherings to delete.');
+          return;
+        }
+        if (confirm(`Are you sure you want to delete ALL (${currentEvents.length}) gatherings? This will remove all events and their photo albums.`)) {
+          let apiSuccess = false;
+          try {
+            const res = await fetch('/api/events', { method: 'DELETE' });
+            if (res.ok) apiSuccess = true;
+          } catch(e) {}
+
+          currentEvents = [];
+          localStorage.setItem('faith_events_store', JSON.stringify([]));
+          updateStatsUI();
+          renderEventsUI();
+          renderPhotoEventOptions();
+          showAdminToast(apiSuccess ? 'All gatherings deleted.' : 'All gatherings cleared locally.');
+        }
+      });
+    }
 
     function showAdminToast(msg) {
       const toast = document.getElementById('adminToast');
