@@ -338,6 +338,10 @@
         <a class="mobile-nav-link text-text-muted hover:text-primary py-1 transition-colors" href="#ministers">Ministry Team</a>
         <a class="mobile-nav-link text-text-muted hover:text-primary py-1 transition-colors" href="#gallery">Moments Archive</a>
         <a class="mobile-nav-link text-text-muted hover:text-primary py-1 transition-colors" href="#reservation">Seat Reservation</a>
+        <a class="mobile-nav-link text-primary hover:text-text-primary py-1 transition-colors flex items-center gap-1.5 pt-2 border-t border-surface-border/40 text-xs font-semibold" href="admin.html">
+          <span class="material-symbols-outlined text-[17px]">admin_panel_settings</span>
+          Stewards Portal
+        </a>
       </nav>
       <div class="pt-2 border-t border-surface-border/40 flex items-center justify-between">
         <span class="text-xs text-text-muted font-label-sm">SANCTUARY DOORS OPEN 18:00</span>
@@ -1235,20 +1239,51 @@
     let eventAlbumsData = {};
 
     async function loadEventsData() {
+      // 1. Check if steward has local modifications
+      let localEvents = null;
+      try {
+        const stored = localStorage.getItem('faith_events_store');
+        if (stored) localEvents = JSON.parse(stored);
+      } catch (e) {}
+
+      // 2. Try fetching from active server API
       try {
         const res = await fetch('/api/events');
         if (res.ok) {
           const events = await res.json();
-          renderGatheringsGrid(events);
-          renderEventAlbums(events);
-          renderTargetGatheringOptions(events);
-          return;
+          if (Array.isArray(events) && events.length > 0) {
+            renderGatheringsGrid(events);
+            renderEventAlbums(events);
+            renderTargetGatheringOptions(events);
+            return;
+          }
         }
-      } catch (e) {
-        console.warn('API /api/events not responding, falling back to static data.');
+      } catch (e) {}
+
+      // 3. If steward has local events stored, use them
+      if (localEvents && Array.isArray(localEvents) && localEvents.length > 0) {
+        renderGatheringsGrid(localEvents);
+        renderEventAlbums(localEvents);
+        renderTargetGatheringOptions(localEvents);
+        return;
       }
 
-      // Default static fallback
+      // 4. Try fetching static data/events.json file (for static online deployments)
+      try {
+        const staticRes = await fetch('data/events.json');
+        if (staticRes.ok) {
+          const events = await staticRes.json();
+          if (Array.isArray(events) && events.length > 0) {
+            renderGatheringsGrid(events);
+            renderEventAlbums(events);
+            renderTargetGatheringOptions(events);
+            localStorage.setItem('faith_events_store', JSON.stringify(events));
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 5. Default static fallback (Guaranteed in-memory fallback)
       const defaultEvents = [
         {
           id: 'album-1',
@@ -1317,6 +1352,7 @@
       renderGatheringsGrid(defaultEvents);
       renderEventAlbums(defaultEvents);
       renderTargetGatheringOptions(defaultEvents);
+      localStorage.setItem('faith_events_store', JSON.stringify(defaultEvents));
     }
 
     /* Renders Upcoming Gatherings Grid dynamically so deletions & additions reflect immediately */
