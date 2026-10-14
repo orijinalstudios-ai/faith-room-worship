@@ -68,7 +68,9 @@ const server = http.createServer((req, res) => {
   // STATIC FILE SERVING
   let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
   
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+  if (pathname === '/admin') {
+    filePath = path.join(__dirname, 'admin.html');
+  } else if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(__dirname, 'index.html');
   }
 
@@ -135,7 +137,51 @@ function handleApi(req, res, pathname, parsedUrl) {
     return;
   }
 
-  // 3. DELETE /api/events/:id
+  // 3a. DELETE /api/events/:id/photos/:photoIndex (Delete individual photo)
+  const photoMatch = pathname.match(/^\/api\/events\/([^\/]+)\/photos\/(\d+)$/);
+  if (req.method === 'DELETE' && photoMatch) {
+    const eventId = photoMatch[1];
+    const photoIdx = parseInt(photoMatch[2], 10);
+    const events = readJson(EVENTS_FILE);
+    const event = events.find(e => e.id === eventId);
+
+    if (!event || !event.photos || !event.photos[photoIdx]) {
+      sendJson(404, { error: 'Photo or event not found.' });
+      return;
+    }
+
+    const removed = event.photos.splice(photoIdx, 1)[0];
+    if (event.photos.length === 0) {
+      event.coverImage = 'Images/hero-1.webp';
+    } else if (event.coverImage === removed.src) {
+      event.coverImage = event.photos[0].src;
+    }
+
+    writeJson(EVENTS_FILE, events);
+    sendJson(200, { success: true, message: 'Photo deleted successfully', remaining: event.photos.length });
+    return;
+  }
+
+  // 3b. DELETE /api/events/:id/photos (Delete all photos in an album)
+  const clearPhotosMatch = pathname.match(/^\/api\/events\/([^\/]+)\/photos$/);
+  if (req.method === 'DELETE' && clearPhotosMatch) {
+    const eventId = clearPhotosMatch[1];
+    const events = readJson(EVENTS_FILE);
+    const event = events.find(e => e.id === eventId);
+
+    if (!event) {
+      sendJson(404, { error: 'Event not found.' });
+      return;
+    }
+
+    event.photos = [];
+    event.coverImage = 'Images/hero-1.webp';
+    writeJson(EVENTS_FILE, events);
+    sendJson(200, { success: true, message: 'All photos cleared from album', remaining: 0 });
+    return;
+  }
+
+  // 3c. DELETE /api/events/:id
   if (req.method === 'DELETE' && pathname.startsWith('/api/events/')) {
     const id = pathname.replace('/api/events/', '');
     let events = readJson(EVENTS_FILE);

@@ -59,8 +59,9 @@
           Unlock Dashboard
         </button>
       </form>
-      <div class="mt-6 pt-4 border-t border-surface-border/50 text-[11px] text-text-muted">
-        Default key: <code class="text-primary font-mono bg-surface-elevated px-1.5 py-0.5 rounded">faith2026</code>
+      <div class="mt-6 pt-4 border-t border-surface-border/50 text-[11px] text-text-muted flex items-center justify-between">
+        <span>Default key: <code class="text-primary font-mono bg-surface-elevated px-1.5 py-0.5 rounded">faith2026</code></span>
+        <button type="button" id="quickUnlockBtn" class="text-primary hover:text-white font-mono text-[11px] underline cursor-pointer">Quick Unlock →</button>
       </div>
     </div>
   </div>
@@ -208,7 +209,13 @@
                 <h4 class="font-headline text-lg text-text-primary font-bold">Album Photo Gallery</h4>
                 <p class="text-xs text-text-muted mt-0.5">Photos currently in the selected album.</p>
               </div>
-              <span class="text-xs font-mono text-secondary px-3 py-1 bg-surface-elevated rounded-full border border-surface-border" id="albumPhotoCountBadge">0 Photos</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-secondary px-3 py-1 bg-surface-elevated rounded-full border border-surface-border" id="albumPhotoCountBadge">0 Photos</span>
+                <button id="clearAlbumPhotosBtn" class="text-xs text-rose-400 hover:text-rose-300 px-2.5 py-1 rounded bg-surface-elevated border border-surface-border transition-colors flex items-center gap-1 cursor-pointer" title="Delete all photos in this album">
+                  <span class="material-symbols-outlined text-[13px]">delete_sweep</span>
+                  Clear Album
+                </button>
+              </div>
             </div>
 
             <!-- Grid of current album photos -->
@@ -362,6 +369,15 @@
       }
     });
 
+    const quickUnlockBtn = document.getElementById('quickUnlockBtn');
+    if (quickUnlockBtn) {
+      quickUnlockBtn.addEventListener('click', () => {
+        passcodeInput.value = STEWARD_PASSCODE;
+        sessionStorage.setItem('faith_steward_authenticated', 'true');
+        unlockDashboard();
+      });
+    }
+
     logoutBtn.addEventListener('click', () => {
       sessionStorage.removeItem('faith_steward_authenticated');
       dashboardApp.classList.add('hidden');
@@ -399,34 +415,197 @@
       });
     });
 
-    // Load Data (From Backend Server or localStorage fallback)
-    async function loadAllDashboardData() {
-      try {
-        const [evRes, resRes, statsRes] = await Promise.all([
-          fetch('/api/events'),
-          fetch('/api/reservations'),
-          fetch('/api/stats')
-        ]);
+    // 4-Tier Resilient Default Datasets (Guarantees data loads online even without backend server)
+    const DEFAULT_EVENTS = [
+      {
+        id: 'album-1',
+        title: 'The Upper Room Encounter Vol. 2',
+        category: 'live',
+        categoryLabel: 'SANCTUARY LIVE SESSION',
+        dateText: 'Upcoming Friday • 6:00 PM',
+        venueText: 'Secret Sanctuary, Lagos / Online Stream',
+        maxPhysicalSeats: 30,
+        bookedPhysicalSeats: 14,
+        coverImage: 'Images/hero-1.webp',
+        description: 'An uninterrupted three-hour deep dive of spontaneous psalms, strings, and collective intercession.',
+        photos: [
+          { src: 'Images/hero-1.webp', title: 'Minister Ezra Leading in Deep Intercession', desc: 'Eyes closed in holy reverence, ushering worshippers before the altar of presence.' },
+          { src: 'Images/hero-2.webp', title: 'Sanctuary Choir in Spiritual Unity', desc: 'Vocalists weaving intricate three-part harmonies under warm stage illumination.' },
+          { src: 'Images/hero-3.webp', title: 'The Cry of Deliverance', desc: 'Prophetic psalms bursting forth in uninhibited worship.' },
+          { src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCObNtYaN4SOmrPJU6decK92zju1sdoVgOBYiuvZWZen5ytZ1lTKv1sZiyyYIERwznXlanhbHSBzFpLmTV2BxeXxwk3T-GgjJ5D23aZRyJRKCWDjIZDA4b6DPc65RJfKIsqnPDRFtlQPD_OuQFDGsrLuloiVPokGMzyuKhvcmz_zv9FN-9am8TG1DRdT_KdkEgfnjt4hHgeWOJqEbQ6qsMmdmuxdm3sXLHk4VdWbyjX8nrNbwBBJmXd', title: 'Lifted Hands in the Sanctuary', desc: 'Congregational adoration responding to the sound from heaven.' },
+          { src: 'Images/thumb-2.webp', title: 'Harmonic Keys & Synth Pads', desc: 'Architecting dynamic tonal atmospheres for spontaneous spiritual flow.' },
+          { src: 'Images/thumb-3.webp', title: 'Acoustic Strings & Cello', desc: 'Warm acoustic frequencies resonating through the auditorium.' }
+        ]
+      },
+      {
+        id: 'album-2',
+        title: 'Outpouring & Overflow Session',
+        category: 'recording',
+        categoryLabel: 'ALBUM RECORDING SESSION',
+        dateText: 'Next Month • 7:00 PM',
+        venueText: 'Main Sanctuary Room / 4K Live Broadcast',
+        maxPhysicalSeats: 30,
+        bookedPhysicalSeats: 9,
+        coverImage: 'Images/hero-2.webp',
+        description: 'Live audio & video capture of the upcoming Faith Room 2026 Anthem compilation with the full ministry ensemble.',
+        photos: [
+          { src: 'Images/hero-2.webp', title: 'Sanctuary Anthem Recording', desc: 'Ensemble vocalists releasing newly penned worship anthems live in the studio sanctuary.' },
+          { src: 'Images/hero-1.webp', title: 'Psalmist Leadership', desc: 'Minister Ezra directing the room through prophetic shifts and unwritten choruses.' },
+          { src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDoeunkYcyl37ngZZySr4eNe53dBq7iHk9b5zZkmh9uG_5HrQ-D-U4iRsBoWdgBQy5d17zX3OyY8MLd6Z-38jmVzHLpmjd_Vhdz8d2nIv9g_cAa0Pk5Rwl2nT5-hXPz-ge3Wdsi-HEwX4TCX5rlZIbKHyj_xI6fVvG_KvUzLOUBNJ7YyRjVKjM_mUbbBBuhpgJd5FnOOZmVO4XgUug5HWjE8eIH470WjZiqJN3vho7y_jhV1o9L-FUV', title: 'Choir Passion & Rim Lighting', desc: 'Theatrical darkness contrasting warm amber spotlights.' },
+          { src: 'Images/thumb-3.webp', title: 'Acoustic Guitarist Close-up', desc: 'Pure acoustic tones carrying the contemplative melody.' }
+        ]
+      },
+      {
+        id: 'album-3',
+        title: 'Acoustic Strings & Secret Place',
+        category: 'acoustic',
+        categoryLabel: 'CANDLELIT CHAMBER SESSION',
+        dateText: 'December 2026 • The Faith Chamber',
+        venueText: 'The Faith Chamber • Candlelit Hall',
+        maxPhysicalSeats: 30,
+        bookedPhysicalSeats: 5,
+        coverImage: 'Images/hero-3.webp',
+        description: 'Stripped-back acoustic guitars, upright piano, gentle cello, and whispered intercession in an intimate candlelit room.',
+        photos: [
+          { src: 'Images/hero-3.webp', title: 'Acoustic Solitude & Devotion', desc: 'Unplugged melodies touching eternity in the quiet sanctuary.' },
+          { src: 'Images/thumb-3.webp', title: 'Fingerpicked Acoustic Chords', desc: 'Warm acoustic mahogany guitar tone filling the silent chamber.' },
+          { src: 'Images/thumb-2.webp', title: 'Grand Piano Resonance', desc: 'Gentle piano voicings accompanying solo vocal intercession.' },
+          { src: 'Images/thumb-1.webp', title: 'Intimate Fellowship', desc: 'Communion of saints lingering late into the night.' }
+        ]
+      },
+      {
+        id: 'album-4',
+        title: 'Altar of Deliverance & Communion',
+        category: 'live',
+        categoryLabel: 'DELIVERANCE ENCOUNTER',
+        dateText: 'January 2027 • Sanctuary Altar',
+        venueText: 'Sanctuary Altar • Open Broadcast',
+        maxPhysicalSeats: 30,
+        bookedPhysicalSeats: 12,
+        coverImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCObNtYaN4SOmrPJU6decK92zju1sdoVgOBYiuvZWZen5ytZ1lTKv1sZiyyYIERwznXlanhbHSBzFpLmTV2BxeXxwk3T-GgjJ5D23aZRyJRKCWDjIZDA4b6DPc65RJfKIsqnPDRFtlQPD_OuQFDGsrLuloiVPokGMzyuKhvcmz_zv9FN-9am8TG1DRdT_KdkEgfnjt4hHgeWOJqEbQ6qsMmdmuxdm3sXLHk4VdWbyjX8nrNbwBBJmXd',
+        description: 'Hands lifted high, tears of deliverance, and the palpable presence of the Holy Spirit moving through rows of hungry believers.',
+        photos: [
+          { src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCObNtYaN4SOmrPJU6decK92zju1sdoVgOBYiuvZWZen5ytZ1lTKv1sZiyyYIERwznXlanhbHSBzFpLmTV2BxeXxwk3T-GgjJ5D23aZRyJRKCWDjIZDA4b6DPc65RJfKIsqnPDRFtlQPD_OuQFDGsrLuloiVPokGMzyuKhvcmz_zv9FN-9am8TG1DRdT_KdkEgfnjt4hHgeWOJqEbQ6qsMmdmuxdm3sXLHk4VdWbyjX8nrNbwBBJmXd', title: 'Atmosphere of Surrender', desc: 'Dozens kneeling at the altar in spontaneous deliverance.' },
+          { src: 'Images/hero-1.webp', title: 'Apostolic Intercession', desc: 'Minister Ezra declaring victory and healing across the room.' },
+          { src: 'Images/hero-2.webp', title: 'Anthems of the Redeemed', desc: 'Singing songs of liberation with lifted voices.' },
+          { src: 'Images/thumb-3.webp', title: 'The Sound of Healing', desc: 'Chords that soothe the weary soul and restore faith.' }
+        ]
+      }
+    ];
 
-        if (evRes.ok && resRes.ok) {
-          currentEvents = await evRes.json();
-          currentReservations = await resRes.json();
-          const stats = statsRes.ok ? await statsRes.json() : null;
-          updateStatsUI(stats);
-          renderEventsUI();
-          renderPhotoEventOptions();
-          renderRsvpsUI();
-          return;
+    const DEFAULT_RESERVATIONS = [
+      {
+        passId: 'FRW-8821-LAG',
+        name: 'David Oluwatobi',
+        email: 'david@worshipmail.com',
+        phone: '+234 802 345 6789',
+        event: 'The Upper Room Encounter Vol. 2',
+        type: 'In-Person Sanctuary (Strict 30 Cap)',
+        createdAt: '2026-10-14T08:15:00.000Z'
+      },
+      {
+        passId: 'FRW-4190-LAG',
+        name: 'Sarah Adeyemi',
+        email: 'sarah.a@faithroom.org',
+        phone: '+234 809 111 2233',
+        event: 'Outpouring & Overflow Session',
+        type: 'In-Person Sanctuary (Strict 30 Cap)',
+        createdAt: '2026-10-14T08:30:00.000Z'
+      },
+      {
+        passId: 'FRW-1204-GB',
+        name: 'Jonathan Miller',
+        email: 'jmiller@worshipstream.co.uk',
+        phone: '+44 7700 900123',
+        event: 'The Upper Room Encounter Vol. 2',
+        type: 'Online Stream VIP Access (Unlimited)',
+        createdAt: '2026-10-14T08:45:00.000Z'
+      },
+      {
+        passId: 'FRW-7732-US',
+        name: 'Grace Washington',
+        email: 'grace.w@sanctuaryreach.com',
+        phone: '+1 404 555 0199',
+        event: 'Outpouring & Overflow Session',
+        type: 'Online Stream VIP Access (Unlimited)',
+        createdAt: '2026-10-14T09:00:00.000Z'
+      }
+    ];
+
+    // Load Data (Multi-Tier Resilient Strategy: API -> static files -> localStorage -> Defaults)
+    async function loadAllDashboardData() {
+      let localEvents = null;
+      let localReservations = null;
+
+      try {
+        const storedEv = localStorage.getItem('faith_events_store');
+        if (storedEv) localEvents = JSON.parse(storedEv);
+        const storedRes = localStorage.getItem('faith_reservations_store');
+        if (storedRes) localReservations = JSON.parse(storedRes);
+      } catch (e) {}
+
+      let apiEvents = null;
+      let apiReservations = null;
+
+      // Tier 1: Live Server API
+      try {
+        const evRes = await fetch('/api/events');
+        if (evRes.ok) {
+          const data = await evRes.json();
+          if (Array.isArray(data) && data.length > 0) apiEvents = data;
         }
-      } catch (err) {
-        console.warn('Backend API not responding, checking localStorage fallback');
+      } catch (err) {}
+
+      try {
+        const resRes = await fetch('/api/reservations');
+        if (resRes.ok) {
+          const data = await resRes.json();
+          if (Array.isArray(data)) apiReservations = data;
+        }
+      } catch (err) {}
+
+      // Tier 2: Static repository files (Works on static Vercel, GitHub Pages, etc.)
+      if (!apiEvents) {
+        try {
+          const staticEv = await fetch('data/events.json');
+          if (staticEv.ok) {
+            const data = await staticEv.json();
+            if (Array.isArray(data) && data.length > 0) apiEvents = data;
+          }
+        } catch (e) {}
       }
 
-      // Fallback: Read from localStorage
-      const localEvents = localStorage.getItem('faith_events_store');
-      currentEvents = localEvents ? JSON.parse(localEvents) : [];
-      const localRes = localStorage.getItem('faith_reservations_store');
-      currentReservations = localRes ? JSON.parse(localRes) : [];
+      if (!apiReservations) {
+        try {
+          const staticRes = await fetch('data/reservations.json');
+          if (staticRes.ok) {
+            const data = await staticRes.json();
+            if (Array.isArray(data)) apiReservations = data;
+          }
+        } catch (e) {}
+      }
+
+      // Tier 3 & 4: Resolve events
+      if (localEvents && Array.isArray(localEvents) && localEvents.length > 0) {
+        currentEvents = localEvents;
+      } else if (apiEvents && Array.isArray(apiEvents) && apiEvents.length > 0) {
+        currentEvents = apiEvents;
+        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+      } else {
+        currentEvents = DEFAULT_EVENTS;
+        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+      }
+
+      // Resolve reservations
+      if (localReservations && Array.isArray(localReservations) && localReservations.length > 0) {
+        currentReservations = localReservations;
+      } else if (apiReservations && Array.isArray(apiReservations) && apiReservations.length > 0) {
+        currentReservations = apiReservations;
+        localStorage.setItem('faith_reservations_store', JSON.stringify(currentReservations));
+      } else {
+        currentReservations = DEFAULT_RESERVATIONS;
+        localStorage.setItem('faith_reservations_store', JSON.stringify(currentReservations));
+      }
 
       updateStatsUI();
       renderEventsUI();
@@ -549,16 +728,80 @@
 
       badge.textContent = `${event.photos.length} Photos`;
 
-      event.photos.forEach(photo => {
+      event.photos.forEach((photo, idx) => {
         const item = document.createElement('div');
         item.className = 'group relative rounded-lg overflow-hidden border border-surface-border bg-black/40 h-28';
         item.innerHTML = `
           <img src="${photo.src}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="${photo.title}">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end">
+          <!-- Photo Delete Button -->
+          <button class="delete-photo-btn absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10 cursor-pointer" data-event-id="${eventId}" data-photo-idx="${idx}" title="Delete this photo">
+            <span class="material-symbols-outlined text-[13px]">delete</span>
+          </button>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end pointer-events-none">
             <span class="text-[10px] font-semibold text-text-primary truncate">${photo.title}</span>
           </div>
         `;
         grid.appendChild(item);
+      });
+
+      // Attach delete click listeners to individual photo cards
+      grid.querySelectorAll('.delete-photo-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const targetEventId = btn.dataset.eventId;
+          const targetPhotoIdx = parseInt(btn.dataset.photoIdx, 10);
+          if (confirm('Are you sure you want to delete this photo from the album?')) {
+            let apiSuccess = false;
+            try {
+              const res = await fetch(`/api/events/${targetEventId}/photos/${targetPhotoIdx}`, { method: 'DELETE' });
+              if (res.ok) apiSuccess = true;
+            } catch (err) {}
+
+            const evt = currentEvents.find(ev => ev.id === targetEventId);
+            if (evt && evt.photos) {
+              evt.photos.splice(targetPhotoIdx, 1);
+              if (evt.photos.length === 0) {
+                evt.coverImage = 'Images/hero-1.webp';
+              }
+              localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+            }
+            updateStatsUI();
+            renderEventsUI();
+            renderPhotoEventOptions();
+            renderCurrentAlbumPhotos(targetEventId);
+            showAdminToast(apiSuccess ? 'Photo deleted successfully.' : 'Photo removed from album.');
+          }
+        });
+      });
+    }
+
+    // Clear entire album gallery
+    const clearAlbumPhotosBtn = document.getElementById('clearAlbumPhotosBtn');
+    if (clearAlbumPhotosBtn) {
+      clearAlbumPhotosBtn.addEventListener('click', async () => {
+        const select = document.getElementById('photoEventSelect');
+        const eventId = select.value;
+        if (!eventId) return;
+        const event = currentEvents.find(e => e.id === eventId);
+        if (!event || !event.photos || event.photos.length === 0) {
+          showAdminToast('Album is already empty.');
+          return;
+        }
+
+        if (confirm(`Are you sure you want to delete ALL photos in "${event.title}"?`)) {
+          let apiSuccess = false;
+          try {
+            const res = await fetch(`/api/events/${eventId}/photos`, { method: 'DELETE' });
+            if (res.ok) apiSuccess = true;
+          } catch (err) {}
+          event.photos = [];
+          localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+          updateStatsUI();
+          renderEventsUI();
+          renderPhotoEventOptions();
+          renderCurrentAlbumPhotos(eventId);
+          showAdminToast(apiSuccess ? 'All album photos cleared.' : 'Album photos cleared.');
+        }
       });
     }
 
@@ -605,6 +848,7 @@
         base64Data: uploadedBase64
       };
 
+      let apiSuccess = false;
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
@@ -612,23 +856,22 @@
           body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-          showAdminToast('Photo successfully added to event album!');
-        }
-      } catch (err) {
-        // Fallback: save to localStorage state
-        const target = currentEvents.find(ev => ev.id === payload.eventId);
-        if (target) {
-          target.photos = target.photos || [];
-          target.photos.unshift({
-            src: payload.base64Data,
-            title: payload.title,
-            desc: payload.desc
-          });
-          localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
-          showAdminToast('Photo saved locally to album!');
-        }
+        if (res.ok) apiSuccess = true;
+      } catch (err) {}
+
+      // Always save to currentEvents and localStorage so online/offline steward sees it immediately
+      const target = currentEvents.find(ev => ev.id === payload.eventId);
+      if (target) {
+        target.photos = target.photos || [];
+        target.photos.unshift({
+          src: payload.base64Data,
+          title: payload.title || 'Sacred Moment',
+          desc: payload.desc || 'Captured in worship.'
+        });
+        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
       }
+
+      showAdminToast(apiSuccess ? 'Photo successfully added to event album!' : 'Photo saved to album!');
 
       // Reset form
       document.getElementById('photoTitleInput').value = '';
@@ -640,7 +883,10 @@
       submitBtn.disabled = false;
       submitBtn.textContent = 'Upload to Event Album';
 
-      loadAllDashboardData();
+      updateStatsUI();
+      renderEventsUI();
+      renderPhotoEventOptions();
+      renderCurrentAlbumPhotos(payload.eventId);
     });
 
     // Render RSVPs Table
@@ -730,36 +976,39 @@
     document.getElementById('newEventForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const newEvent = {
+        id: `album-${Date.now()}`,
         title: document.getElementById('eventTitleInput').value.trim(),
         category: document.getElementById('eventCategorySelect').value,
         categoryLabel: document.getElementById('eventCategorySelect').selectedOptions[0].text.toUpperCase(),
         maxPhysicalSeats: parseInt(document.getElementById('eventPhysicalSeatsInput').value, 10) || 30,
+        bookedPhysicalSeats: 0,
         dateText: document.getElementById('eventDateTextInput').value.trim(),
         venueText: document.getElementById('eventVenueTextInput').value.trim(),
         description: document.getElementById('eventDescInput').value.trim(),
+        coverImage: 'Images/hero-1.webp',
         photos: []
       };
 
+      let apiSuccess = false;
       try {
         const res = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newEvent)
         });
-        if (res.ok) {
-          showAdminToast('New Gathering published!');
-        }
-      } catch (err) {
-        newEvent.id = `album-${Date.now()}`;
-        currentEvents.unshift(newEvent);
-        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
-        showAdminToast('Gathering saved locally!');
-      }
+        if (res.ok) apiSuccess = true;
+      } catch (err) {}
+
+      currentEvents.unshift(newEvent);
+      localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+      showAdminToast(apiSuccess ? 'New Gathering published!' : 'New Gathering saved to portal!');
 
       newEventModal.classList.add('hidden');
       newEventModal.classList.remove('flex');
       document.getElementById('newEventForm').reset();
-      loadAllDashboardData();
+      updateStatsUI();
+      renderEventsUI();
+      renderPhotoEventOptions();
     });
 
     function showAdminToast(msg) {

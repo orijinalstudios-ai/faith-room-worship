@@ -2,8 +2,72 @@
 <html class="dark scroll-smooth" lang="en">
 <head>
   <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>FAITH ROOM | Worship Ministry</title>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=5.0" name="viewport">
+  <title>FAITH ROOM | Sacred Worship Ministry & Global Encounters</title>
+  
+  <!-- SEO Primary Meta Tags -->
+  <meta name="title" content="FAITH ROOM | Sacred Worship Ministry & Global Encounters">
+  <meta name="description" content="An intimate sanctuary of soul-stirring worship, igniting unshakeable faith in the heart of the room and across the nations. Onsite sanctuary seats strictly capped at 30. Unlimited global online streaming.">
+  <meta name="keywords" content="Faith Room Worship, Christian worship, holy encounters, intimate worship, Lagos worship ministry, Todd Dulaney, prayer, secret place, live worship streaming">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  <meta name="author" content="Faith Room Worship Ministry">
+  <meta name="theme-color" content="#131315">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://faithroomworship.org/">
+  <meta property="og:title" content="FAITH ROOM | Sacred Worship Ministry & Global Encounters">
+  <meta property="og:description" content="An intimate sanctuary of soul-stirring worship, igniting unshakeable faith. Onsite sanctuary strictly 30 seats. Unlimited global online streaming.">
+  <meta property="og:image" content="Images/hero-1.webp">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://faithroomworship.org/">
+  <meta property="twitter:title" content="FAITH ROOM | Sacred Worship Ministry">
+  <meta property="twitter:description" content="An intimate sanctuary of soul-stirring worship, igniting faith across nations. Pure devotion, unfiltered communion.">
+  <meta property="twitter:image" content="Images/hero-1.webp">
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MusicEvent",
+    "name": "Faith Room Worship - The Upper Room Encounter",
+    "startDate": "2026-11-20T18:00:00+01:00",
+    "eventAttendanceMode": "https://schema.org/MixedEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "location": [
+      {
+        "@type": "Place",
+        "name": "Secret Sanctuary",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Lagos",
+          "addressCountry": "NG"
+        }
+      },
+      {
+        "@type": "VirtualLocation",
+        "url": "https://faithroomworship.org/#stream"
+      }
+    ],
+    "image": [
+      "Images/hero-1.webp",
+      "Images/hero-2.webp"
+    ],
+    "description": "An intimate sanctuary of soul-stirring worship, spontaneous psalms, and holy communion.",
+    "performer": {
+      "@type": "MusicGroup",
+      "name": "Faith Room Worship Musicians"
+    },
+    "organizer": {
+      "@type": "Organization",
+      "name": "Faith Room Worship Ministry",
+      "url": "https://faithroomworship.org"
+    }
+  }
+  </script>
   
   <!-- Google Fonts & Material Symbols -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -274,6 +338,10 @@
         <a class="mobile-nav-link text-text-muted hover:text-primary py-1 transition-colors" href="#ministers">Ministry Team</a>
         <a class="mobile-nav-link text-text-muted hover:text-primary py-1 transition-colors" href="#gallery">Moments Archive</a>
         <a class="mobile-nav-link text-text-muted hover:text-primary py-1 transition-colors" href="#reservation">Seat Reservation</a>
+        <a class="mobile-nav-link text-primary hover:text-text-primary py-1 transition-colors flex items-center gap-1.5 pt-2 border-t border-surface-border/40 text-xs font-semibold" href="admin.html">
+          <span class="material-symbols-outlined text-[17px]">admin_panel_settings</span>
+          Stewards Portal
+        </a>
       </nav>
       <div class="pt-2 border-t border-surface-border/40 flex items-center justify-between">
         <span class="text-xs text-text-muted font-label-sm">SANCTUARY DOORS OPEN 18:00</span>
@@ -315,59 +383,59 @@
       </button>
 
       <!-- Hero Content -->
-      <div class="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center mt-12 md:mt-16 reveal-on-scroll">
-        <!-- Live Alert Banner -->
-        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-surface-charcoal/90 border border-surface-border backdrop-blur-md mb-8 shadow-xl">
-          <span class="relative flex h-2 w-2">
+      <div class="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center mt-8 sm:mt-12 md:mt-16 reveal-on-scroll px-2 sm:px-0">
+        <!-- Live Alert Banner (Responsive Text & Sizing) -->
+        <div class="inline-flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-surface-charcoal/90 border border-surface-border backdrop-blur-md mb-6 sm:mb-8 shadow-xl max-w-[95%] sm:max-w-none text-left sm:text-center">
+          <span class="relative flex h-2 w-2 shrink-0">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
-          <span class="font-label-sm text-label-sm text-primary uppercase tracking-[0.15em] font-semibold">
-            NEXT ENCOUNTER: THE UPPER ROOM SESSION — STRICTLY 30 PHYSICAL SANCTUARY SEATS
+          <span class="font-label-sm text-[10px] sm:text-xs text-primary uppercase tracking-[0.12em] font-semibold leading-normal truncate sm:whitespace-normal">
+            NEXT ENCOUNTER: THE UPPER ROOM — 30 STRICT ONSITE SEATS
           </span>
         </div>
 
-        <!-- Headline (Breathable Line-Height Fix) -->
-        <h1 class="font-display-xl text-display-xl md:text-display-xl text-display-xl-mobile font-extrabold text-text-primary tracking-tight leading-[1.12] sm:leading-[1.15] mb-6 drop-shadow-2xl">
+        <!-- Headline (Responsive & Breathable Line-Height) -->
+        <h1 class="font-display-xl text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-text-primary tracking-tight leading-[1.15] sm:leading-none mb-4 sm:mb-6 drop-shadow-2xl">
           IN SPIRIT &amp; <br class="hidden sm:inline">
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary-fixed">IN TRUTH</span>
         </h1>
 
-        <!-- Subtitle (Relaxed Line-Height) -->
-        <p class="font-body-lg text-body-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto font-light leading-relaxed mb-10">
+        <!-- Subtitle (Relaxed Mobile Line-Height) -->
+        <p class="font-body-lg text-sm sm:text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto font-light leading-relaxed mb-8 sm:mb-10 px-2 sm:px-0">
           An intimate sanctuary of soul-stirring worship, igniting faith in the heart of the room and across the nations. Pure devotion, unfiltered worship, sacred sound.
         </p>
 
-        <!-- CTA Buttons -->
-        <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-          <a class="w-full sm:w-auto px-8 py-4 bg-primary-container hover:bg-primary text-[#432c00] font-label-lg text-label-lg uppercase rounded-full font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary-container/25 hover:shadow-primary/40 text-center active:scale-95 flex items-center justify-center gap-2" href="#reservation">
+        <!-- CTA Buttons (Responsive Tap Targets, Full-Width on Mobile) -->
+        <div class="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto px-4 sm:px-0">
+          <a class="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-primary-container hover:bg-primary text-[#432c00] font-label-lg text-xs sm:text-sm uppercase rounded-full font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary-container/25 hover:shadow-primary/40 text-center active:scale-95 flex items-center justify-center gap-2" href="#reservation">
             <span class="material-symbols-outlined text-[18px]" data-icon="confirmation_number">confirmation_number</span>
             Request Seat Invitation
           </a>
-          <button id="heroStreamBtn" class="w-full sm:w-auto px-8 py-4 bg-surface-charcoal/60 hover:bg-surface-elevated border border-surface-border hover:border-primary text-text-primary font-label-lg text-label-lg uppercase rounded-full font-semibold tracking-wider transition-all duration-300 backdrop-blur-sm text-center flex items-center justify-center gap-2 group cursor-pointer" type="button">
+          <button id="heroStreamBtn" class="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-surface-charcoal/60 hover:bg-surface-elevated border border-surface-border hover:border-primary text-text-primary font-label-lg text-xs sm:text-sm uppercase rounded-full font-semibold tracking-wider transition-all duration-300 backdrop-blur-sm text-center flex items-center justify-center gap-2 group cursor-pointer" type="button">
             <span class="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform" data-icon="play_arrow">play_arrow</span>
             Stream Latest Session
           </button>
         </div>
 
         <!-- Slideshow Indicators & Caption -->
-        <div class="mt-12 flex flex-col items-center gap-3">
+        <div class="mt-8 sm:mt-12 flex flex-col items-center gap-3">
           <div class="flex items-center gap-2">
             <button class="hero-dot w-8 h-1.5 rounded-full bg-primary transition-all duration-300 cursor-pointer" data-slide="0" aria-label="Go to slide 1"></button>
             <button class="hero-dot w-3 h-1.5 rounded-full bg-surface-border hover:bg-primary/50 transition-all duration-300 cursor-pointer" data-slide="1" aria-label="Go to slide 2"></button>
             <button class="hero-dot w-3 h-1.5 rounded-full bg-surface-border hover:bg-primary/50 transition-all duration-300 cursor-pointer" data-slide="2" aria-label="Go to slide 3"></button>
           </div>
-          <span id="heroSlideCaption" class="text-[11px] font-label-sm uppercase tracking-widest text-text-muted/80">
+          <span id="heroSlideCaption" class="text-[10.5px] sm:text-[11px] font-label-sm uppercase tracking-widest text-text-muted/80 text-center px-4">
             01 / 03 • THE SECRET PLACE PSALMS &amp; COMMUNION
           </span>
         </div>
 
-        <!-- Meta Scripture Badge -->
-        <div class="mt-8 pt-6 border-t border-surface-border/40 w-full max-w-lg flex justify-around text-text-muted font-label-sm text-label-sm uppercase tracking-widest">
+        <!-- Meta Scripture Badge (Responsive Wrap) -->
+        <div class="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-surface-border/40 w-full max-w-lg flex flex-col sm:flex-row items-center justify-around gap-2 text-text-muted font-label-sm text-[11px] sm:text-xs uppercase tracking-widest">
           <div class="flex items-center gap-2">
             <span class="text-primary font-bold">01</span> ONSITE: 30 CAPPED SEATS
           </div>
-          <span class="text-surface-border">•</span>
+          <span class="hidden sm:inline text-surface-border">•</span>
           <div class="flex items-center gap-2">
             <span class="text-primary font-bold">02</span> ONLINE: UNLIMITED ACCESS
           </div>
@@ -375,43 +443,43 @@
       </div>
     </section>
 
-    <!-- LIVE COUNTDOWN BAR SECTION -->
-    <section class="relative z-20 -mt-10 max-w-7xl mx-auto px-6 md:px-12 reveal-on-scroll" id="countdown">
-      <div class="bg-surface-charcoal border border-surface-border rounded-2xl p-8 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+    <!-- LIVE COUNTDOWN BAR SECTION (Responsive 4-Col Grid, No Mobile Cut-off) -->
+    <section class="relative z-20 -mt-8 sm:-mt-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 reveal-on-scroll" id="countdown">
+      <div class="bg-surface-charcoal border border-surface-border rounded-2xl p-5 sm:p-8 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
         <!-- Ambient Stage Glow inside card -->
         <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-amber-glow blur-3xl pointer-events-none"></div>
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
           <div class="lg:col-span-5">
-            <div class="flex items-center gap-2 text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold mb-2">
-              <span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+            <div class="flex items-center gap-2 text-primary font-label-sm text-[11px] sm:text-label-sm uppercase tracking-widest font-semibold mb-2">
+              <span class="material-symbols-outlined text-[17px] sm:text-[18px]" data-icon="schedule">schedule</span>
               Next Holy Encounter Countdown
             </div>
-            <h2 class="font-headline-md text-headline-md text-text-primary font-bold leading-tight" id="countdownEventTitle">The Upper Room Encounter</h2>
-            <p class="text-text-muted font-body-sm text-body-sm mt-1.5 leading-relaxed" id="countdownDateSubtitle">
+            <h2 class="font-headline-md text-xl sm:text-2xl md:text-3xl text-text-primary font-bold leading-tight" id="countdownEventTitle">The Upper Room Encounter</h2>
+            <p class="text-text-muted font-body-sm text-xs sm:text-sm mt-1.5 leading-relaxed" id="countdownDateSubtitle">
               Friday • 6:00 PM GMT+1 • Secret Sanctuary, Lagos &amp; Global Broadcast
             </p>
-            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated border border-surface-border rounded-full text-[11px] font-label-sm text-secondary">
+            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated border border-surface-border rounded-full text-[10.5px] sm:text-[11px] font-label-sm text-secondary">
               <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
               Onsite entry strictly 30 seats • Online stream unlimited
             </div>
           </div>
-          <!-- Digital Countdown Clocks -->
-          <div class="lg:col-span-7 flex justify-between sm:justify-end gap-3 sm:gap-6">
-            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl p-3 sm:p-5 min-w-[70px] sm:min-w-[96px] text-center shadow-inner">
-              <span class="font-headline-lg text-3xl sm:text-4xl text-primary font-extrabold tracking-tight" id="days">00</span>
-              <span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted mt-1">Days</span>
+          <!-- Digital Countdown Clocks (Fluid Responsive 4-Column Grid) -->
+          <div class="lg:col-span-7 grid grid-cols-4 gap-2 sm:gap-4 lg:gap-6 w-full">
+            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl py-3 px-1 sm:p-5 text-center shadow-inner min-w-0">
+              <span class="font-headline text-2xl sm:text-3xl md:text-4xl text-primary font-extrabold tracking-tight" id="days">00</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase tracking-wider text-text-muted mt-0.5">Days</span>
             </div>
-            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl p-3 sm:p-5 min-w-[70px] sm:min-w-[96px] text-center shadow-inner">
-              <span class="font-headline-lg text-3xl sm:text-4xl text-primary font-extrabold tracking-tight" id="hours">00</span>
-              <span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted mt-1">Hours</span>
+            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl py-3 px-1 sm:p-5 text-center shadow-inner min-w-0">
+              <span class="font-headline text-2xl sm:text-3xl md:text-4xl text-primary font-extrabold tracking-tight" id="hours">00</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase tracking-wider text-text-muted mt-0.5">Hours</span>
             </div>
-            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl p-3 sm:p-5 min-w-[70px] sm:min-w-[96px] text-center shadow-inner">
-              <span class="font-headline-lg text-3xl sm:text-4xl text-primary font-extrabold tracking-tight" id="minutes">00</span>
-              <span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted mt-1">Mins</span>
+            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl py-3 px-1 sm:p-5 text-center shadow-inner min-w-0">
+              <span class="font-headline text-2xl sm:text-3xl md:text-4xl text-primary font-extrabold tracking-tight" id="minutes">00</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase tracking-wider text-text-muted mt-0.5">Mins</span>
             </div>
-            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl p-3 sm:p-5 min-w-[70px] sm:min-w-[96px] text-center shadow-inner">
-              <span class="font-headline-lg text-3xl sm:text-4xl text-secondary font-extrabold tracking-tight" id="seconds">00</span>
-              <span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted mt-1">Secs</span>
+            <div class="flex flex-col items-center justify-center bg-surface-elevated border border-surface-border rounded-xl py-3 px-1 sm:p-5 text-center shadow-inner min-w-0">
+              <span class="font-headline text-2xl sm:text-3xl md:text-4xl text-secondary font-extrabold tracking-tight" id="seconds">00</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase tracking-wider text-text-muted mt-0.5">Secs</span>
             </div>
           </div>
         </div>
@@ -842,17 +910,19 @@
     </div>
   </footer>
 
-  <!-- PERSISTENT GLOBAL WORSHIP STREAM BAR (Dedicated Audio Controls) -->
-  <div class="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-surface-charcoal/90 border-t border-surface-border px-6 py-3">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+  <!-- PERSISTENT GLOBAL WORSHIP STREAM BAR (Todd Dulaney Faith Worship Stream) -->
+  <audio id="faithRoomAudio" preload="metadata" src="https://archive.org/download/todd-dulaney-your-great-name-live/Todd%20Dulaney%20-%20Your%20Great%20Name%20%28Live%29.mp3"></audio>
+
+  <div class="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-surface-charcoal/90 border-t border-surface-border px-4 sm:px-6 py-2.5 sm:py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4">
       <!-- Track Metadata -->
-      <div class="flex items-center gap-3 min-w-0">
-        <button class="w-10 h-10 rounded-full bg-primary text-[#432c00] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20 cursor-pointer" id="playBtn" title="Play spontaneous worship stream">
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 max-w-[65%] sm:max-w-none">
+        <button class="w-10 h-10 rounded-full bg-primary text-[#432c00] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20 cursor-pointer" id="playBtn" title="Play Todd Dulaney - Your Great Name">
           <span class="material-symbols-outlined text-[22px]" data-icon="play_arrow" id="playIcon">play_arrow</span>
         </button>
         <div class="truncate">
           <div class="flex items-center gap-2">
-            <h5 class="text-xs font-semibold text-text-primary truncate">The Secret Place (Spontaneous Flow)</h5>
+            <h5 class="text-xs font-semibold text-text-primary truncate" id="playerTrackTitle">Your Great Name (Live)</h5>
             <!-- Equalizer Visualizer Bars -->
             <div id="equalizerVisualizer" class="hidden items-end gap-0.5 h-3">
               <span class="w-0.5 bg-primary rounded-full animate-eq1"></span>
@@ -861,7 +931,7 @@
               <span class="w-0.5 bg-primary rounded-full animate-eq4"></span>
             </div>
           </div>
-          <p class="text-[11px] text-text-muted truncate">Ezra &amp; Faith Room Musicians • Live in Lagos</p>
+          <p class="text-[10.5px] sm:text-[11px] text-text-muted truncate">Todd Dulaney • Faith Room Stream</p>
         </div>
       </div>
 
@@ -871,12 +941,12 @@
         <div id="progressTrackContainer" class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden relative cursor-pointer hover:h-2 transition-all">
           <div class="bg-primary h-full w-[0%]" id="progressTrack"></div>
         </div>
-        <span class="text-[11px] font-label-sm text-text-muted font-mono" id="durationTime">18:42</span>
+        <span class="text-[11px] font-label-sm text-text-muted font-mono" id="durationTime">05:40</span>
       </div>
 
       <!-- Quick Action / Reservation Tag -->
-      <div class="flex items-center gap-3">
-        <button id="volumeBtn" class="text-text-muted hover:text-primary transition-colors hidden sm:flex items-center justify-center cursor-pointer" title="Adjust Ambient Pad Volume">
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <button id="volumeBtn" class="text-text-muted hover:text-primary transition-colors hidden sm:flex items-center justify-center cursor-pointer" title="Adjust Volume">
           <span class="material-symbols-outlined text-lg" id="volumeIcon">volume_up</span>
         </button>
         <span id="streamingPill" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-elevated border border-surface-border text-[10px] font-label-sm text-secondary uppercase font-semibold">
@@ -940,31 +1010,31 @@
     </div>
   </div>
 
-  <!-- 2. DIGITAL SANCTUARY PASS MODAL -->
-  <div id="passModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-    <div class="relative w-full max-w-lg bg-surface-charcoal border border-primary/40 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-primary/10 overflow-hidden" id="passCardElement">
+  <!-- 2. DIGITAL SANCTUARY PASS MODAL (Scannable QR & WhatsApp Delivery) -->
+  <div id="passModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-lg bg-surface-charcoal border border-primary/40 rounded-2xl p-5 sm:p-8 shadow-2xl shadow-primary/10 overflow-hidden" id="passCardElement">
       <!-- Ambient Card Glow -->
       <div class="absolute -right-20 -top-20 w-64 h-64 bg-amber-glow blur-3xl pointer-events-none"></div>
 
       <!-- Close Button -->
-      <button id="closePassModalBtn" class="absolute top-5 right-5 text-text-muted hover:text-text-primary p-1.5 rounded-full bg-surface-elevated/80 border border-surface-border transition-colors cursor-pointer" aria-label="Close pass modal">
+      <button id="closePassModalBtn" class="absolute top-4 sm:top-5 right-4 sm:right-5 text-text-muted hover:text-text-primary p-1.5 rounded-full bg-surface-elevated/80 border border-surface-border transition-colors cursor-pointer" aria-label="Close pass modal">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
 
       <!-- Pass Header -->
-      <div class="flex items-center gap-3 mb-6 pb-4 border-b border-surface-border">
-        <span class="w-3 h-3 rounded-full bg-primary animate-pulse"></span>
+      <div class="flex items-center gap-3 mb-5 pb-3 border-b border-surface-border">
+        <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
         <div>
-          <span class="font-headline-sm text-lg font-bold tracking-wider text-text-primary leading-tight">FAITH ROOM WORSHIP</span>
+          <span class="font-headline-sm text-base sm:text-lg font-bold tracking-wider text-text-primary leading-tight">FAITH ROOM WORSHIP</span>
           <p class="font-label-sm text-[10px] text-primary tracking-[0.2em] uppercase font-semibold leading-normal mt-0.5">SANCTUARY ADMISSION PASS</p>
         </div>
       </div>
 
       <!-- Pass Badge Status -->
-      <div class="flex justify-between items-start mb-6">
+      <div class="flex justify-between items-start mb-5">
         <div>
-          <span class="text-[11px] font-label-sm uppercase text-text-muted tracking-wider block leading-tight">Attendee</span>
-          <h4 class="font-headline-md text-xl text-text-primary font-bold mt-0.5 leading-snug" id="passAttendeeName">David Oluwatobi</h4>
+          <span class="text-[10px] sm:text-[11px] font-label-sm uppercase text-text-muted tracking-wider block leading-tight">Attendee</span>
+          <h4 class="font-headline-md text-lg sm:text-xl text-text-primary font-bold mt-0.5 leading-snug" id="passAttendeeName">David Oluwatobi</h4>
           <p class="text-xs text-text-muted mt-0.5 leading-normal" id="passAttendeeContact">david@worshipmail.com</p>
         </div>
         <div class="text-right">
@@ -972,52 +1042,56 @@
             <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
             CONFIRMED
           </span>
-          <span class="block text-[10px] font-mono text-text-muted mt-1" id="passCodeId">FRW-8821-LAG</span>
+          <span class="block text-[11px] font-mono text-text-muted mt-1 font-bold text-primary" id="passCodeId">FRW-8821-LAG</span>
         </div>
       </div>
 
       <!-- Pass Details Box -->
-      <div class="bg-surface-elevated/90 border border-surface-border rounded-xl p-4 mb-6 space-y-3 font-body-sm text-xs">
+      <div class="bg-surface-elevated/90 border border-surface-border rounded-xl p-3.5 sm:p-4 mb-5 space-y-2.5 font-body-sm text-xs">
         <div class="flex justify-between pb-2 border-b border-surface-border/50">
-          <span class="text-text-muted">Gathering Session:</span>
-          <span class="font-semibold text-text-primary" id="passGatheringTitle">The Secret Place Encounter</span>
+          <span class="text-text-muted">Gathering:</span>
+          <span class="font-semibold text-text-primary text-right truncate max-w-[200px]" id="passGatheringTitle">The Upper Room Encounter</span>
         </div>
         <div class="flex justify-between pb-2 border-b border-surface-border/50">
-          <span class="text-text-muted">Admission Category:</span>
+          <span class="text-text-muted">Category:</span>
           <span class="font-semibold text-secondary uppercase" id="passAttendanceType">In-Person Sanctuary (Strict 30 Cap)</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-text-muted">Sanctuary Arrival:</span>
+          <span class="text-text-muted">Arrival:</span>
           <span class="font-semibold text-text-primary">Doors Open 17:30 • Prompt 18:00</span>
         </div>
       </div>
 
-      <!-- Verification QR / Barcode Display -->
-      <div class="flex items-center justify-between p-3 bg-surface-container-lowest border border-surface-border rounded-lg mb-6">
+      <!-- Authentic Scannable QR Code Box -->
+      <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-surface-border rounded-xl mb-5">
         <div class="flex items-center gap-3">
-          <!-- Stylized SVG QR Code -->
-          <svg class="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2zm-2-2h2v2h-2v-2zm4-2h2v2h-2v-2zm-2-4h4v2h-4v-2z"/>
-          </svg>
+          <!-- Real Scannable QR Code Image -->
+          <img id="passQrImg" class="w-14 h-14 rounded-lg border border-primary/40 bg-white p-0.5 shrink-0" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=FRW-8821-LAG&bgcolor=ffffff&color=131315" alt="Sanctuary Pass QR Code">
           <div>
-            <span class="text-[11px] font-label-sm text-text-primary uppercase tracking-wider block font-semibold leading-tight">Digital Gate Verification</span>
-            <span class="text-[10px] text-text-muted leading-tight">Present at entrance stewards scan</span>
+            <span class="text-[11px] font-label-sm text-text-primary uppercase tracking-wider block font-semibold leading-tight">Digital Gate Pass</span>
+            <span class="text-[10px] text-text-muted leading-tight block mt-0.5">Scan at sanctuary entrance stewards desk</span>
           </div>
         </div>
         <span class="text-primary font-mono text-xs font-bold" id="passSecurityToken">#VERIFIED</span>
       </div>
 
-      <!-- Pass Modal Actions -->
-      <div class="grid grid-cols-2 gap-3">
-        <button id="downloadPassBtn" class="py-2.5 px-4 bg-primary-container hover:bg-primary text-[#432c00] font-label-sm text-xs uppercase font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+      <!-- Pass Modal Actions (Save, WhatsApp & Calendar) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <button id="downloadPassBtn" class="py-2.5 px-3 min-h-[44px] bg-primary-container hover:bg-primary text-[#432c00] font-label-sm text-xs uppercase font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md">
           <span class="material-symbols-outlined text-[16px]">print</span>
           Save / Print
         </button>
-        <button id="addCalendarBtn" class="py-2.5 px-4 bg-surface-elevated hover:bg-surface-bright border border-surface-border text-text-primary font-label-sm text-xs uppercase font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+        <button id="shareWhatsAppBtn" class="py-2.5 px-3 min-h-[44px] bg-emerald-600/90 hover:bg-emerald-500 text-white font-label-sm text-xs uppercase font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md">
+          <span class="material-symbols-outlined text-[16px]">send_to_mobile</span>
+          WhatsApp Pass
+        </button>
+        <button id="addCalendarBtn" class="py-2.5 px-3 min-h-[44px] bg-surface-elevated hover:bg-surface-bright border border-surface-border text-text-primary font-label-sm text-xs uppercase font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
           <span class="material-symbols-outlined text-[16px]">calendar_add_on</span>
-          Add to Calendar
+          Add Calendar
         </button>
       </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -1159,25 +1233,57 @@
     startHeroAutoplay();
 
     /* ==========================================================
-       2. EVENT ALBUMS MULTI-IMAGE GALLERY SYSTEM
+       2. DYNAMIC GATHERINGS & EVENT ALBUMS GALLERY SYSTEM
        Loads from /api/events or local fallback
        ========================================================== */
     let eventAlbumsData = {};
 
     async function loadEventsData() {
+      // 1. Check if steward has local modifications
+      let localEvents = null;
+      try {
+        const stored = localStorage.getItem('faith_events_store');
+        if (stored) localEvents = JSON.parse(stored);
+      } catch (e) {}
+
+      // 2. Try fetching from active server API
       try {
         const res = await fetch('/api/events');
         if (res.ok) {
           const events = await res.json();
-          renderEventAlbums(events);
-          renderTargetGatheringOptions(events);
-          return;
+          if (Array.isArray(events) && events.length > 0) {
+            renderGatheringsGrid(events);
+            renderEventAlbums(events);
+            renderTargetGatheringOptions(events);
+            return;
+          }
         }
-      } catch (e) {
-        console.warn('API /api/events not responding, falling back to static data.');
+      } catch (e) {}
+
+      // 3. If steward has local events stored, use them
+      if (localEvents && Array.isArray(localEvents) && localEvents.length > 0) {
+        renderGatheringsGrid(localEvents);
+        renderEventAlbums(localEvents);
+        renderTargetGatheringOptions(localEvents);
+        return;
       }
 
-      // Default static fallback
+      // 4. Try fetching static data/events.json file (for static online deployments)
+      try {
+        const staticRes = await fetch('data/events.json');
+        if (staticRes.ok) {
+          const events = await staticRes.json();
+          if (Array.isArray(events) && events.length > 0) {
+            renderGatheringsGrid(events);
+            renderEventAlbums(events);
+            renderTargetGatheringOptions(events);
+            localStorage.setItem('faith_events_store', JSON.stringify(events));
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 5. Default static fallback (Guaranteed in-memory fallback)
       const defaultEvents = [
         {
           id: 'album-1',
@@ -1243,8 +1349,96 @@
         }
       ];
 
+      renderGatheringsGrid(defaultEvents);
       renderEventAlbums(defaultEvents);
       renderTargetGatheringOptions(defaultEvents);
+      localStorage.setItem('faith_events_store', JSON.stringify(defaultEvents));
+    }
+
+    /* Renders Upcoming Gatherings Grid dynamically so deletions & additions reflect immediately */
+    function renderGatheringsGrid(events) {
+      const container = document.getElementById('gatheringsGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!events || events.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-text-muted">
+            <span class="material-symbols-outlined text-4xl text-primary mb-2 block">event_busy</span>
+            <p class="font-body-sm">No upcoming gatherings announced yet. Check back soon.</p>
+          </div>
+        `;
+        return;
+      }
+
+      events.forEach((ev) => {
+        const card = document.createElement('div');
+        const cat = ev.category || 'live';
+        const catLabel = ev.categoryLabel || (cat === 'live' ? 'Live Session' : cat === 'recording' ? 'Album Recording' : 'Acoustic Night');
+        const dateBadge = (ev.dateText || 'UPCOMING FRIDAY').toUpperCase();
+        const timeBadge = ev.timeText || '6:00 PM';
+        const cover = ev.coverImage || 'Images/thumb-1.webp';
+
+        card.className = 'gathering-card group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between';
+        card.dataset.category = cat;
+        card.dataset.event = ev.title;
+
+        card.innerHTML = `
+          <div class="relative h-56 overflow-hidden">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="${cover}" alt="${ev.title}">
+            <div class="absolute inset-0 bg-gradient-to-t from-surface-charcoal via-transparent to-black/40"></div>
+            <div class="absolute top-4 left-4 bg-surface-charcoal/90 border border-surface-border text-primary font-label-sm text-label-sm uppercase px-3 py-1 rounded-full font-semibold">
+              ${catLabel}
+            </div>
+            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+              <span class="font-label-lg text-label-lg text-text-primary font-bold truncate max-w-[65%]">${dateBadge}</span>
+              <span class="font-label-sm text-label-sm text-secondary bg-surface-elevated/90 px-2 py-0.5 rounded border border-surface-border">${timeBadge}</span>
+            </div>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-headline-sm text-xl text-text-primary font-semibold mb-2 leading-snug group-hover:text-primary transition-colors">${ev.title}</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant font-light mb-4 leading-relaxed">
+                ${ev.description || 'An atmosphere of deep prayer, spontaneous worship, and the moving presence of God.'}
+              </p>
+              <div class="space-y-2 mb-6 text-xs text-text-muted font-label-sm uppercase tracking-wider">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm text-primary">airline_seat_recline_normal</span>
+                  <span>Onsite: Strictly 30 Seats Capped</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm text-secondary">podcasts</span>
+                  <span>Online Stream: Unlimited Global Access</span>
+                </div>
+              </div>
+            </div>
+            <button class="apply-seat-btn w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer min-h-[44px]" data-event-title="${ev.title}">
+              Apply for Seat / Stream Link
+            </button>
+          </div>
+        `;
+
+        const applyBtn = card.querySelector('.apply-seat-btn');
+        if (applyBtn) {
+          applyBtn.addEventListener('click', () => {
+            const targetGatheringSelect = document.getElementById('targetGathering');
+            if (targetGatheringSelect) {
+              for (let option of targetGatheringSelect.options) {
+                if (option.value.includes(ev.title) || option.text.includes(ev.title)) {
+                  option.selected = true;
+                  break;
+                }
+              }
+            }
+            const reservationSection = document.getElementById('reservation');
+            if (reservationSection) {
+              reservationSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        }
+
+        container.appendChild(card);
+      });
     }
 
     function renderEventAlbums(events) {
@@ -1408,8 +1602,9 @@
     loadEventsData();
 
     /* ==========================================================
-       3. AMBIENT WORSHIP PAD SYNTHESIZER (Web Audio API)
-       Pure polyphonic warm worship pad in D Major (D, F#, A, C#, E)
+       3. TODD DULANEY FAITH WORSHIP AUDIO STREAM
+       Worship track: "Your Great Name" (Live Worship) - Todd Dulaney
+       Includes live visualizer, time tracking, scrubbing & fallback
        ========================================================== */
     class WorshipPadEngine {
       constructor() {
@@ -1428,7 +1623,6 @@
         this.gainNode = this.ctx.createGain();
         this.gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
 
-        // Lush Warm Lowpass Filter
         this.filter = this.ctx.createBiquadFilter();
         this.filter.type = 'lowpass';
         this.filter.frequency.setValueAtTime(420, this.ctx.currentTime);
@@ -1437,7 +1631,6 @@
         this.filter.connect(this.gainNode);
         this.gainNode.connect(this.ctx.destination);
 
-        // D Major 9th sacred chord voicing: D3 (146.83), A3 (220.00), C#4 (277.18), F#4 (369.99), A4 (440.00)
         const freqs = [146.83, 220.00, 277.18, 369.99, 440.00];
 
         freqs.forEach((freq, idx) => {
@@ -1446,8 +1639,6 @@
 
           osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          
-          // Subtle chorus detuning
           osc.detune.setValueAtTime((idx - 2) * 5, this.ctx.currentTime);
 
           oscGain.gain.setValueAtTime(0.14, this.ctx.currentTime);
@@ -1487,7 +1678,8 @@
 
     const worshipPad = new WorshipPadEngine();
 
-    // Bottom Stream Controls & Visualizer
+    // Stream Controls & Visualizer
+    const faithAudio = document.getElementById('faithRoomAudio');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
     const equalizerVisualizer = document.getElementById('equalizerVisualizer');
@@ -1499,40 +1691,88 @@
     const volumeIcon = document.getElementById('volumeIcon');
 
     let isAudioPlaying = false;
-    let trackElapsedSec = 258; // start at 04:18
-    const totalDurationSec = 1122; // 18:42
-    let playInterval = null;
-    let isMuted = false;
+    let fallbackPadActive = false;
 
     function formatTime(secs) {
+      if (!secs || isNaN(secs)) return '00:00';
       const m = Math.floor(secs / 60);
       const s = Math.floor(secs % 60);
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    function togglePlayback() {
+    if (faithAudio) {
+      faithAudio.addEventListener('timeupdate', () => {
+        if (!isNaN(faithAudio.currentTime)) {
+          currentTimeElem.textContent = formatTime(faithAudio.currentTime);
+          if (faithAudio.duration && !isNaN(faithAudio.duration)) {
+            const pct = (faithAudio.currentTime / faithAudio.duration) * 100;
+            progressTrack.style.width = `${pct}%`;
+          }
+        }
+      });
+
+      faithAudio.addEventListener('loadedmetadata', () => {
+        if (!isNaN(faithAudio.duration)) {
+          durationTimeElem.textContent = formatTime(faithAudio.duration);
+        }
+      });
+
+      faithAudio.addEventListener('ended', () => {
+        isAudioPlaying = false;
+        playIcon.textContent = 'play_arrow';
+        if (equalizerVisualizer) {
+          equalizerVisualizer.classList.add('hidden');
+          equalizerVisualizer.classList.remove('flex');
+        }
+        progressTrack.style.width = '0%';
+        currentTimeElem.textContent = '00:00';
+      });
+
+      faithAudio.addEventListener('error', () => {
+        console.warn('Network audio stream not available, activating sacred worship pad atmosphere fallback.');
+        if (isAudioPlaying) {
+          worshipPad.start();
+          fallbackPadActive = true;
+        }
+      });
+    }
+
+    async function togglePlayback() {
       isAudioPlaying = !isAudioPlaying;
 
       if (isAudioPlaying) {
-        worshipPad.start();
         playIcon.textContent = 'pause';
-        equalizerVisualizer.classList.remove('hidden');
-        equalizerVisualizer.classList.add('flex');
-        
-        showToast('Live Worship Atmosphere active — The Secret Place', 'music_note');
+        if (equalizerVisualizer) {
+          equalizerVisualizer.classList.remove('hidden');
+          equalizerVisualizer.classList.add('flex');
+        }
+        showToast('Now Playing: Todd Dulaney - Your Great Name (Live Worship)', 'music_note');
 
-        playInterval = setInterval(() => {
-          trackElapsedSec = (trackElapsedSec + 1) % totalDurationSec;
-          currentTimeElem.textContent = formatTime(trackElapsedSec);
-          const percent = (trackElapsedSec / totalDurationSec) * 100;
-          progressTrack.style.width = percent + '%';
-        }, 1000);
+        if (faithAudio) {
+          try {
+            await faithAudio.play();
+          } catch (err) {
+            console.warn('Direct MP3 playback restricted by browser policy; activating sacred tone pad fallback.', err);
+            worshipPad.start();
+            fallbackPadActive = true;
+          }
+        } else {
+          worshipPad.start();
+          fallbackPadActive = true;
+        }
       } else {
-        worshipPad.stop();
         playIcon.textContent = 'play_arrow';
-        equalizerVisualizer.classList.add('hidden');
-        equalizerVisualizer.classList.remove('flex');
-        clearInterval(playInterval);
+        if (equalizerVisualizer) {
+          equalizerVisualizer.classList.add('hidden');
+          equalizerVisualizer.classList.remove('flex');
+        }
+        if (faithAudio) {
+          faithAudio.pause();
+        }
+        if (fallbackPadActive) {
+          worshipPad.stop();
+          fallbackPadActive = false;
+        }
       }
     }
 
@@ -1543,21 +1783,25 @@
         const rect = progressTrackContainer.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-        trackElapsedSec = Math.floor(ratio * totalDurationSec);
-        currentTimeElem.textContent = formatTime(trackElapsedSec);
-        progressTrack.style.width = (ratio * 100) + '%';
+        if (faithAudio && faithAudio.duration && !isNaN(faithAudio.duration)) {
+          faithAudio.currentTime = ratio * faithAudio.duration;
+          progressTrack.style.width = `${ratio * 100}%`;
+          currentTimeElem.textContent = formatTime(faithAudio.currentTime);
+        }
       });
     }
 
     if (volumeBtn) {
       volumeBtn.addEventListener('click', () => {
-        isMuted = !isMuted;
-        if (isMuted) {
-          worshipPad.setVolume(0);
+        if (!faithAudio) return;
+        faithAudio.muted = !faithAudio.muted;
+        if (faithAudio.muted) {
           volumeIcon.textContent = 'volume_off';
+          worshipPad.setVolume(0);
         } else {
-          worshipPad.setVolume(0.28);
           volumeIcon.textContent = 'volume_up';
+          faithAudio.volume = 0.8;
+          worshipPad.setVolume(0.28);
         }
       });
     }
@@ -1610,7 +1854,6 @@
        5. GATHERINGS CATEGORY FILTER & RESERVATION PREFILL
        ========================================================== */
     const filterButtons = document.querySelectorAll('.filter-btn');
-    const gatheringCards = document.querySelectorAll('.gathering-card');
 
     filterButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1623,7 +1866,8 @@
         btn.classList.add('bg-primary', 'text-[#432c00]', 'shadow-md', 'shadow-primary/20');
         btn.classList.remove('bg-surface-charcoal', 'text-text-muted', 'border', 'border-surface-border');
 
-        gatheringCards.forEach(card => {
+        const currentGatheringCards = document.querySelectorAll('.gathering-card');
+        currentGatheringCards.forEach(card => {
           if (filter === 'all' || card.dataset.category === filter) {
             card.style.display = 'flex';
           } else {
@@ -1785,6 +2029,14 @@
       document.getElementById('passAttendanceType').textContent = data.type;
       document.getElementById('passCodeId').textContent = data.passId;
 
+      // Authentic Scannable QR Code using QR Server API
+      const passQrImg = document.getElementById('passQrImg');
+      if (passQrImg) {
+        const qrPayload = encodeURIComponent(`FAITH-ROOM-PASS:${data.passId}:${data.name}:${data.event}`);
+        passQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrPayload}&bgcolor=ffffff&color=131315`;
+        passQrImg.alt = `Sanctuary Pass QR for ${data.passId}`;
+      }
+
       passModal.classList.remove('hidden');
       passModal.classList.add('flex');
     }
@@ -1807,6 +2059,25 @@
     if (downloadPassBtn) {
       downloadPassBtn.addEventListener('click', () => {
         window.print();
+      });
+    }
+
+    // Share Pass via WhatsApp
+    const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
+    if (shareWhatsAppBtn) {
+      shareWhatsAppBtn.addEventListener('click', () => {
+        if (!currentPassData) return;
+        const msg = encodeURIComponent(
+          `🕊️ *FAITH ROOM WORSHIP - SANCTUARY PASS*\n\n` +
+          `*Pass ID:* ${currentPassData.passId}\n` +
+          `*Attendee:* ${currentPassData.name}\n` +
+          `*Gathering:* ${currentPassData.event}\n` +
+          `*Admission Type:* ${currentPassData.type}\n` +
+          `*Arrival:* Doors open 17:30 • Prompt 18:00\n` +
+          `*Venue:* Secret Sanctuary, Lagos & Global Broadcast\n\n` +
+          `Present this digital pass or your QR code at the Stewards Desk for admission. God bless you!`
+        );
+        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
       });
     }
 
