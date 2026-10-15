@@ -27,6 +27,7 @@ export default async function handler(req, res) {
             try { data = JSON.parse(data); } catch(e) { break; }
           }
           if (Array.isArray(data)) {
+            res.setHeader('X-Faith-Source', 'database');
             return res.status(200).json(data);
           }
         }
@@ -34,6 +35,8 @@ export default async function handler(req, res) {
         console.error('KV Read Error:', err);
       }
     }
+    // Return default events with header indicating it is static fallback
+    res.setHeader('X-Faith-Source', 'static-default');
     return res.status(200).json(defaultEvents || []);
   }
 
@@ -45,7 +48,6 @@ export default async function handler(req, res) {
 
     if (kvUrl && kvToken) {
       try {
-        // Read current
         const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
           headers: { Authorization: `Bearer ${kvToken}` }
         });
@@ -78,23 +80,38 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ success: true, event: newEvent, note: 'KV not configured, cached on client' });
+    return res.status(200).json({ success: true, event: newEvent, note: 'Saved to local device' });
   }
 
   if (req.method === 'DELETE') {
+    const id = req.query?.id;
     if (kvUrl && kvToken) {
       try {
+        let events = [];
+        if (id) {
+          const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
+            headers: { Authorization: `Bearer ${kvToken}` }
+          });
+          if (getRes.ok) {
+            const r = await getRes.json();
+            let d = r.result;
+            while (typeof d === 'string') {
+              try { d = JSON.parse(d); } catch(e) { break; }
+            }
+            if (Array.isArray(d)) events = d.filter(e => e.id !== id);
+          }
+        }
         await fetch(`${kvUrl}/set/${KEY}`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${kvToken}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify([])
+          body: JSON.stringify(events)
         });
       } catch(e) {}
     }
-    return res.status(200).json({ success: true, message: 'Events deleted' });
+    return res.status(200).json({ success: true, message: id ? `Event ${id} deleted` : 'All events deleted' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

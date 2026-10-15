@@ -602,23 +602,31 @@
       }
     ];
 
-    // Load Data (Multi-Tier Resilient Strategy: Cloud Firestore -> API -> static files -> localStorage -> Defaults)
+    // Load Data (Multi-Tier Resilient Strategy: IndexedDB -> Cloud Firestore -> LocalStorage -> API -> Defaults)
     async function loadAllDashboardData() {
-      let localEvents = null;
-      let localReservations = null;
+      const isCustomized = window.FaithStorage ? window.FaithStorage.isCustomized() : (localStorage.getItem('faith_events_customized') === 'true');
+      let localEvents = window.FaithStorage ? await window.FaithStorage.get('faith_events_store', null) : null;
+      let localReservations = window.FaithStorage ? await window.FaithStorage.get('faith_reservations_store', null) : null;
 
-      try {
-        const storedEv = localStorage.getItem('faith_events_store');
-        if (storedEv) localEvents = JSON.parse(storedEv);
-        const storedRes = localStorage.getItem('faith_reservations_store');
-        if (storedRes) localReservations = JSON.parse(storedRes);
-      } catch (e) {}
+      if (localEvents === null) {
+        try {
+          const storedEv = localStorage.getItem('faith_events_store');
+          if (storedEv) localEvents = JSON.parse(storedEv);
+        } catch (e) {}
+      }
 
-      // Initial instant rendering from local cache
-      if (localEvents !== null && Array.isArray(localEvents)) {
-        currentEvents = localEvents;
+      if (localReservations === null) {
+        try {
+          const storedRes = localStorage.getItem('faith_reservations_store');
+          if (storedRes) localReservations = JSON.parse(storedRes);
+        } catch (e) {}
+      }
+
+      // Initial instant rendering: If customized, respect user's data (even if 0 events!)
+      if (isCustomized) {
+        currentEvents = Array.isArray(localEvents) ? localEvents : [];
       } else {
-        currentEvents = DEFAULT_EVENTS;
+        currentEvents = (Array.isArray(localEvents) && localEvents.length > 0) ? localEvents : DEFAULT_EVENTS;
       }
 
       if (localReservations && Array.isArray(localReservations) && localReservations.length > 0) {
@@ -654,20 +662,24 @@
         }, currentReservations);
       }
 
-      // Background Fetch from Serverless API
-      try {
-        const evRes = await fetch('/api/events');
-        if (evRes.ok) {
-          const data = await evRes.json();
-          if (Array.isArray(data) && data.length > 0 && (!window.FaithRoomCloud || !FaithRoomCloud.isAvailable())) {
-            currentEvents = data;
-            localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
-            updateStatsUI();
-            renderEventsUI();
-            renderPhotoEventOptions();
+      // Background Fetch from Serverless API (Only sync if NOT customized or server has live database)
+      if (!isCustomized) {
+        try {
+          const evRes = await fetch('/api/events');
+          if (evRes.ok) {
+            const data = await evRes.json();
+            const source = evRes.headers.get('X-Faith-Source');
+            const events = Array.isArray(data) ? data : (data.events || []);
+            if (Array.isArray(events) && events.length > 0 && !window.FaithStorage.isCustomized()) {
+              currentEvents = events;
+              await window.FaithStorage.set('faith_events_store', currentEvents);
+              updateStatsUI();
+              renderEventsUI();
+              renderPhotoEventOptions();
+            }
           }
-        }
-      } catch (err) {}
+        } catch (err) {}
+      }
 
       try {
         const resRes = await fetch('/api/reservations');
@@ -675,7 +687,7 @@
           const data = await resRes.json();
           if (Array.isArray(data) && data.length > 0 && (!window.FaithRoomCloud || !FaithRoomCloud.isAvailable())) {
             currentReservations = data;
-            localStorage.setItem('faith_reservations_store', JSON.stringify(currentReservations));
+            await window.FaithStorage.set('faith_reservations_store', currentReservations);
             updateStatsUI();
             renderRsvpsUI();
           }
@@ -776,14 +788,17 @@
           const target = currentEvents.find(e => e.id === id);
           const name = target ? target.title : 'this gathering';
           if (confirm(`Are you sure you want to delete "${name}"?`)) {
+            window.FaithStorage.markCustomized();
+            currentEvents = currentEvents.filter(e => e.id !== id);
+            await window.FaithStorage.set('faith_events_store', currentEvents);
+
             if (window.FaithRoomCloud) {
               await FaithRoomCloud.deleteEvent(id);
             }
             try {
               await fetch(`/api/events/${id}`, { method: 'DELETE' });
             } catch(e) {}
-            currentEvents = currentEvents.filter(e => e.id !== id);
-            localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+
             updateStatsUI();
             renderEventsUI();
             renderPhotoEventOptions();
@@ -858,6 +873,7 @@
           const targetEventId = btn.dataset.eventId;
           const targetPhotoIdx = parseInt(btn.dataset.photoIdx, 10);
           if (confirm('Are you sure you want to delete this photo from the album?')) {
+            window.FaithStorage.markCustomized();
             let apiSuccess = false;
             try {
               const res = await fetch(`/api/events/${targetEventId}/photos/${targetPhotoIdx}`, { method: 'DELETE' });
@@ -870,7 +886,7 @@
               if (evt.photos.length === 0) {
                 evt.coverImage = 'Images/hero-1.webp';
               }
-              localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+              await window.FaithStorage.set('faith_events_store', currentEvents);
               if (window.FaithRoomCloud) {
                 FaithRoomCloud.saveEvent(evt);
               }
@@ -899,13 +915,14 @@
         }
 
         if (confirm(`Are you sure you want to delete ALL photos in "${event.title}"?`)) {
+          window.FaithStorage.markCustomized();
           let apiSuccess = false;
           try {
             const res = await fetch(`/api/events/${eventId}/photos`, { method: 'DELETE' });
             if (res.ok) apiSuccess = true;
           } catch (err) {}
           event.photos = [];
-          localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+          await window.FaithStorage.set('faith_events_store', currentEvents);
           if (window.FaithRoomCloud) {
             FaithRoomCloud.saveEvent(event);
           }
@@ -918,7 +935,7 @@
       });
     }
 
-    // Photo File Dropzone & Base64 Reader
+    // Photo File Dropzone & Optimized Canvas Compressor
     let uploadedBase64 = null;
     const dropZone = document.getElementById('dropZone');
     const photoFileInput = document.getElementById('photoFileInput');
@@ -928,17 +945,46 @@
 
     dropZone.addEventListener('click', () => photoFileInput.click());
 
-    photoFileInput.addEventListener('change', () => {
-      const file = photoFileInput.files[0];
-      if (file) {
-        fileChosenText.textContent = file.name;
+    async function processSelectedPhotoFile(file) {
+      if (!file) return;
+      fileChosenText.textContent = `Optimizing ${file.name}...`;
+      try {
+        uploadedBase64 = await window.FaithStorage.compressImage(file, 1280, 1280, 0.82);
+        imagePreview.src = uploadedBase64;
+        imagePreviewContainer.classList.remove('hidden');
+        fileChosenText.textContent = `${file.name} (Ready to upload)`;
+      } catch (err) {
+        console.error('Image optimization failed, reading raw data:', err);
         const reader = new FileReader();
         reader.onload = (e) => {
           uploadedBase64 = e.target.result;
           imagePreview.src = uploadedBase64;
           imagePreviewContainer.classList.remove('hidden');
+          fileChosenText.textContent = file.name;
         };
         reader.readAsDataURL(file);
+      }
+    }
+
+    photoFileInput.addEventListener('change', () => {
+      const file = photoFileInput.files[0];
+      if (file) processSelectedPhotoFile(file);
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-primary');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-primary');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-primary');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        processSelectedPhotoFile(e.dataTransfer.files[0]);
       }
     });
 
@@ -946,13 +992,13 @@
     document.getElementById('photoUploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!uploadedBase64) {
-        alert('Please choose an image file first.');
+        alert('Please choose or drag an image file first.');
         return;
       }
 
       const submitBtn = document.getElementById('uploadPhotoSubmitBtn');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Uploading & Compressing...';
+      submitBtn.textContent = 'Uploading to Album...';
 
       const payload = {
         eventId: document.getElementById('photoEventSelect').value,
@@ -960,6 +1006,8 @@
         desc: document.getElementById('photoDescInput').value.trim(),
         base64Data: uploadedBase64
       };
+
+      window.FaithStorage.markCustomized();
 
       let apiSuccess = false;
       try {
@@ -972,7 +1020,7 @@
         if (res.ok) apiSuccess = true;
       } catch (err) {}
 
-      // Always save to currentEvents and localStorage so online/offline steward sees it immediately
+      // Always save to currentEvents and IndexedDB/localStorage
       const target = currentEvents.find(ev => ev.id === payload.eventId);
       if (target) {
         target.photos = target.photos || [];
@@ -981,7 +1029,10 @@
           title: payload.title || 'Sacred Moment',
           desc: payload.desc || 'Captured in worship.'
         });
-        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+        if (!target.coverImage || target.coverImage.includes('hero-1.webp')) {
+          target.coverImage = payload.base64Data;
+        }
+        await window.FaithStorage.set('faith_events_store', currentEvents);
         if (window.FaithRoomCloud) {
           FaithRoomCloud.saveEvent(target);
         }
@@ -1139,6 +1190,8 @@
         description: document.getElementById('eventDescInput').value.trim()
       };
 
+      window.FaithStorage.markCustomized();
+
       if (isEditing) {
         const targetId = editingEventId.value;
         const index = currentEvents.findIndex(ev => ev.id === targetId);
@@ -1159,7 +1212,7 @@
           if (res.ok) apiSuccess = true;
         } catch (err) {}
 
-        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+        await window.FaithStorage.set('faith_events_store', currentEvents);
         if (window.FaithRoomCloud && index !== -1) {
           FaithRoomCloud.saveEvent(currentEvents[index]);
         }
@@ -1184,7 +1237,7 @@
         } catch (err) {}
 
         currentEvents.unshift(newEvent);
-        localStorage.setItem('faith_events_store', JSON.stringify(currentEvents));
+        await window.FaithStorage.set('faith_events_store', currentEvents);
         if (window.FaithRoomCloud) {
           FaithRoomCloud.saveEvent(newEvent);
         }
@@ -1206,6 +1259,7 @@
           return;
         }
         if (confirm(`Are you sure you want to delete ALL (${currentEvents.length}) gatherings? This will remove all events and their photo albums.`)) {
+          window.FaithStorage.markCustomized();
           let apiSuccess = false;
           try {
             const res = await fetch('/api/events', { method: 'DELETE' });
@@ -1213,7 +1267,7 @@
           } catch(e) {}
 
           currentEvents = [];
-          localStorage.setItem('faith_events_store', JSON.stringify([]));
+          await window.FaithStorage.set('faith_events_store', []);
           if (window.FaithRoomCloud) {
             await FaithRoomCloud.deleteAllEvents();
           }

@@ -1267,13 +1267,39 @@
     let eventAlbumsData = {};
 
     async function loadEventsData() {
-      // 1. Initial render from local cache if present (for instantaneous UX)
-      let localEvents = null;
-      try {
-        const stored = localStorage.getItem('faith_events_store');
-        if (stored !== null) localEvents = JSON.parse(stored);
-      } catch (e) {}
+      const isCustomized = window.FaithStorage ? window.FaithStorage.isCustomized() : (localStorage.getItem('faith_events_customized') === 'true');
+      let localEvents = window.FaithStorage ? await window.FaithStorage.get('faith_events_store', null) : null;
 
+      if (localEvents === null) {
+        try {
+          const stored = localStorage.getItem('faith_events_store');
+          if (stored !== null) localEvents = JSON.parse(stored);
+        } catch (e) {}
+      }
+
+      // 1. If customized: User-created/deleted events in IndexedDB/localStorage are authoritative!
+      if (isCustomized) {
+        const events = Array.isArray(localEvents) ? localEvents : [];
+        renderGatheringsGrid(events);
+        renderEventAlbums(events);
+        renderTargetGatheringOptions(events);
+        syncCountdownWithEvents(events);
+
+        // Listen for live multi-device Firestore sync
+        if (window.FaithRoomCloud) {
+          window.FaithRoomCloud.listenEvents((cloudEvents) => {
+            if (Array.isArray(cloudEvents)) {
+              renderGatheringsGrid(cloudEvents);
+              renderEventAlbums(cloudEvents);
+              renderTargetGatheringOptions(cloudEvents);
+              syncCountdownWithEvents(cloudEvents);
+            }
+          }, events);
+        }
+        return; // CRITICAL: Stop here so static defaultEvents NEVER overwrite customized data!
+      }
+
+      // 2. Initial render for pristine first visit
       if (localEvents !== null && Array.isArray(localEvents) && localEvents.length > 0) {
         renderGatheringsGrid(localEvents);
         renderEventAlbums(localEvents);
@@ -1281,7 +1307,7 @@
         syncCountdownWithEvents(localEvents);
       }
 
-      // 2. Real-time Cloud Sync (Firestore) - Updates live across all devices
+      // 3. Real-time Cloud Sync (Firestore)
       if (window.FaithRoomCloud) {
         window.FaithRoomCloud.listenEvents((cloudEvents) => {
           if (Array.isArray(cloudEvents)) {
@@ -1293,39 +1319,44 @@
         }, localEvents || []);
       }
 
-      // 3. Try fetching from serverless API
-      try {
-        const res = await fetch('/api/events');
-        if (res.ok) {
-          const events = await res.json();
-          if (Array.isArray(events) && events.length > 0) {
-            renderGatheringsGrid(events);
-            renderEventAlbums(events);
-            renderTargetGatheringOptions(events);
-            syncCountdownWithEvents(events);
-            localStorage.setItem('faith_events_store', JSON.stringify(events));
-            return;
+      // 4. Try fetching from serverless API (Only if NOT customized)
+      if (!isCustomized) {
+        try {
+          const res = await fetch('/api/events');
+          if (res.ok) {
+            const data = await res.json();
+            const events = Array.isArray(data) ? data : (data.events || []);
+            if (Array.isArray(events) && events.length > 0 && !(window.FaithStorage && window.FaithStorage.isCustomized())) {
+              renderGatheringsGrid(events);
+              renderEventAlbums(events);
+              renderTargetGatheringOptions(events);
+              syncCountdownWithEvents(events);
+              if (window.FaithStorage) await window.FaithStorage.set('faith_events_store', events);
+              return;
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
 
-      // 4. Try fetching static data/events.json file (for static online deployments)
-      try {
-        const staticRes = await fetch('data/events.json');
-        if (staticRes.ok) {
-          const events = await staticRes.json();
-          if (Array.isArray(events) && events.length > 0) {
-            renderGatheringsGrid(events);
-            renderEventAlbums(events);
-            renderTargetGatheringOptions(events);
-            syncCountdownWithEvents(events);
-            localStorage.setItem('faith_events_store', JSON.stringify(events));
-            return;
+      // 5. Try fetching static data/events.json file (Only if NOT customized)
+      if (!isCustomized) {
+        try {
+          const staticRes = await fetch('data/events.json');
+          if (staticRes.ok) {
+            const events = await staticRes.json();
+            if (Array.isArray(events) && events.length > 0 && !(window.FaithStorage && window.FaithStorage.isCustomized())) {
+              renderGatheringsGrid(events);
+              renderEventAlbums(events);
+              renderTargetGatheringOptions(events);
+              syncCountdownWithEvents(events);
+              if (window.FaithStorage) await window.FaithStorage.set('faith_events_store', events);
+              return;
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
 
-      // 5. Default static fallback (Guaranteed in-memory fallback)
+      // 6. Default static fallback (Guaranteed in-memory fallback for first-time visitors)
       const defaultEvents = [
         {
           id: 'album-1',
@@ -1395,7 +1426,7 @@
       renderEventAlbums(defaultEvents);
       renderTargetGatheringOptions(defaultEvents);
       syncCountdownWithEvents(defaultEvents);
-      localStorage.setItem('faith_events_store', JSON.stringify(defaultEvents));
+      if (window.FaithStorage) await window.FaithStorage.set('faith_events_store', defaultEvents);
     }
 
     /* Synchronizes the Live Countdown Bar with events list. If corresponding event is deleted, updates to next or hides cleanly */

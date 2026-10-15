@@ -1,14 +1,165 @@
 /**
- * Faith Room Worship - Cloud Sync Architecture
- * Powered by Firebase Cloud Firestore & Resilient Local Fallbacks
- * 
- * Provides real-time synchronization of gatherings, photo albums, 
- * and seat reservations across all devices (Mobile, Tablet, Desktop).
+ * Faith Room Worship - Resilient Storage & Cloud Sync Architecture
+ * Powered by IndexedDB, HTML5 Canvas Image Compression, LocalStorage,
+ * and Cloud Firestore Real-Time Synchronization.
  */
 
+// ==========================================
+// 1. FAITH STORAGE ENGINE (IndexedDB + Storage Quota Safe)
+// ==========================================
+class FaithStorageService {
+  constructor() {
+    this.dbName = 'faith_room_offline_v2';
+    this.dbVersion = 1;
+    this.db = null;
+    this.initPromise = this.initIndexedDB();
+  }
+
+  async initIndexedDB() {
+    if (typeof window === 'undefined' || !window.indexedDB) return null;
+    return new Promise((resolve) => {
+      try {
+        const req = window.indexedDB.open(this.dbName, this.dbVersion);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('store')) {
+            db.createObjectStore('store', { keyPath: 'key' });
+          }
+        };
+        req.onsuccess = (e) => {
+          this.db = e.target.result;
+          resolve(this.db);
+        };
+        req.onerror = () => {
+          console.warn('[FaithStorage] IndexedDB not available, using localStorage fallback');
+          resolve(null);
+        };
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  }
+
+  async get(key, fallback = null) {
+    await this.initPromise;
+    // 1. Try IndexedDB
+    if (this.db) {
+      try {
+        const val = await new Promise((resolve) => {
+          const tx = this.db.transaction('store', 'readonly');
+          const store = tx.objectStore('store');
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result !== undefined ? req.result.val : null);
+          req.onerror = () => resolve(null);
+        });
+        if (val !== null && val !== undefined) return val;
+      } catch (e) {}
+    }
+
+    // 2. Fallback to LocalStorage
+    try {
+      const ls = localStorage.getItem(key);
+      if (ls !== null) return JSON.parse(ls);
+    } catch (e) {}
+
+    return fallback;
+  }
+
+  async set(key, val) {
+    await this.initPromise;
+    // 1. Store in IndexedDB (immune to 5MB localStorage limits)
+    if (this.db) {
+      try {
+        await new Promise((resolve, reject) => {
+          const tx = this.db.transaction('store', 'readwrite');
+          const store = tx.objectStore('store');
+          store.put({ key, val });
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = (e) => reject(e);
+        });
+      } catch (e) {
+        console.warn('[FaithStorage] IndexedDB write warning:', e);
+      }
+    }
+
+    // 2. Also cache in LocalStorage (catch QuotaExceededError gracefully)
+    try {
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {
+      console.warn('[FaithStorage] LocalStorage quota exceeded, safely persisted in IndexedDB.');
+    }
+  }
+
+  isCustomized() {
+    try {
+      return localStorage.getItem('faith_events_customized') === 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  markCustomized() {
+    try {
+      localStorage.setItem('faith_events_customized', 'true');
+    } catch (e) {}
+  }
+
+  /**
+   * Compresses large phone/camera images (e.g. 8MB) down to lightweight WebP/JPEG (~80KB - 140KB)
+   * This guarantees images never exceed LocalStorage quota, Firestore 1MB limits, or freeze mobile browsers.
+   */
+  async compressImage(fileOrDataUrl, maxWidth = 1280, maxHeight = 1280, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try WebP first, fallback to JPEG
+        let dataUrl = canvas.toDataURL('image/webp', quality);
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error('Failed to load image for compression'));
+
+      if (typeof fileOrDataUrl === 'string') {
+        img.src = fileOrDataUrl;
+      } else if (fileOrDataUrl instanceof Blob || fileOrDataUrl instanceof File) {
+        const reader = new FileReader();
+        reader.onload = (e) => { img.src = e.target.result; };
+        reader.onerror = (e) => reject(e);
+        reader.readAsDataURL(fileOrDataUrl);
+      } else {
+        reject(new Error('Invalid image input'));
+      }
+    });
+  }
+}
+
+window.FaithStorage = new FaithStorageService();
+
+// ==========================================
+// 2. FAITH ROOM CLOUD SERVICE (Firestore Sync)
+// ==========================================
 const DEFAULT_FIREBASE_CONFIG = {
-  // Stewards can paste their Firebase project config here,
-  // or configure it dynamically via the Stewards Portal Admin UI.
   apiKey: "",
   authDomain: "",
   projectId: "",
@@ -24,7 +175,7 @@ class FaithRoomCloudService {
     this.eventsUnsubscribe = null;
     this.reservationsUnsubscribe = null;
     this.statusListeners = [];
-    this.currentStatus = 'offline'; // 'connected' | 'offline' | 'unconfigured'
+    this.currentStatus = 'offline';
 
     this.init();
   }
@@ -61,14 +212,13 @@ class FaithRoomCloudService {
     }
 
     if (typeof firebase === 'undefined') {
-      console.warn('[FaithRoomCloud] Firebase SDK not loaded. Operating in local mode.');
+      console.warn('[FaithRoomCloud] Firebase SDK not loaded. Operating in persistent local mode.');
       this.currentStatus = 'offline';
       this.notifyStatus('offline');
       return;
     }
 
     try {
-      // Re-initialize app if already exists
       if (!firebase.apps.length) {
         firebase.initializeApp(config);
       }
@@ -103,16 +253,19 @@ class FaithRoomCloudService {
   /**
    * Listen to real-time events updates across all devices
    */
-  listenEvents(onUpdate, fallbackData = []) {
+  async listenEvents(onUpdate, fallbackData = []) {
+    const isCustomized = window.FaithStorage.isCustomized();
+
     if (!this.isAvailable()) {
-      // Fallback: Read local storage or fallback data
-      try {
-        const stored = localStorage.getItem('faith_events_store');
-        if (stored) {
-          onUpdate(JSON.parse(stored));
-          return;
-        }
-      } catch (e) {}
+      const stored = await window.FaithStorage.get('faith_events_store', null);
+      if (stored !== null && Array.isArray(stored)) {
+        onUpdate(stored);
+        return;
+      }
+      if (isCustomized) {
+        onUpdate([]);
+        return;
+      }
       onUpdate(fallbackData);
       return;
     }
@@ -123,11 +276,20 @@ class FaithRoomCloudService {
       const eventsRef = this.db.collection('events');
 
       this.eventsUnsubscribe = eventsRef.onSnapshot(async (snapshot) => {
-        // If collection is completely empty in Firestore, seed it with fallbackData
-        if (snapshot.empty && fallbackData && fallbackData.length > 0) {
-          console.log('[FaithRoomCloud] Firestore empty. Seeding initial gatherings...');
-          await this.seedInitialEvents(fallbackData);
-          return;
+        // If collection is completely empty in Firestore:
+        if (snapshot.empty) {
+          // If the user has already customized/deleted gatherings, NEVER re-seed old defaults!
+          if (window.FaithStorage.isCustomized()) {
+            await window.FaithStorage.set('faith_events_store', []);
+            onUpdate([]);
+            return;
+          }
+
+          if (fallbackData && fallbackData.length > 0) {
+            console.log('[FaithRoomCloud] Pristine first-time setup. Seeding initial gatherings...');
+            await this.seedInitialEvents(fallbackData);
+            return;
+          }
         }
 
         const events = [];
@@ -135,31 +297,34 @@ class FaithRoomCloudService {
           events.push({ id: doc.id, ...doc.data() });
         });
 
-        // Sort: newest or preserve order
         events.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-        // Cache locally for offline resilience
-        try {
-          localStorage.setItem('faith_events_store', JSON.stringify(events));
-        } catch (e) {}
+        // Cache persistently in IndexedDB & LocalStorage
+        await window.FaithStorage.set('faith_events_store', events);
 
         this.notifyStatus('connected');
         onUpdate(events);
-      }, (error) => {
+      }, async (error) => {
         console.error('[FaithRoomCloud] Events listener error:', error);
         this.notifyStatus('offline');
-        // Fallback to local cache
-        const stored = localStorage.getItem('faith_events_store');
-        onUpdate(stored ? JSON.parse(stored) : fallbackData);
+        const stored = await window.FaithStorage.get('faith_events_store', null);
+        if (stored !== null && Array.isArray(stored)) {
+          onUpdate(stored);
+        } else if (isCustomized) {
+          onUpdate([]);
+        } else {
+          onUpdate(fallbackData);
+        }
       });
     } catch (err) {
       console.error('[FaithRoomCloud] listenEvents failed:', err);
-      onUpdate(fallbackData);
+      const stored = await window.FaithStorage.get('faith_events_store', fallbackData);
+      onUpdate(stored);
     }
   }
 
   /**
-   * Seed initial gatherings if Firestore collection is blank
+   * Seed initial gatherings if Firestore collection is completely blank on pristine setup
    */
   async seedInitialEvents(events) {
     if (!this.isAvailable()) return;
@@ -180,9 +345,10 @@ class FaithRoomCloudService {
   }
 
   /**
-   * Save (Create or Update) Gathering in Firestore
+   * Save (Create or Update) Gathering in Firestore & IndexedDB
    */
   async saveEvent(eventData) {
+    window.FaithStorage.markCustomized();
     const id = eventData.id || `album-${Date.now()}`;
     const payload = {
       ...eventData,
@@ -191,13 +357,14 @@ class FaithRoomCloudService {
       createdAt: eventData.createdAt || Date.now()
     };
 
-    // Always update local cache immediately
+    // Update local cache
     try {
-      const stored = JSON.parse(localStorage.getItem('faith_events_store') || '[]');
+      let stored = await window.FaithStorage.get('faith_events_store', []);
+      if (!Array.isArray(stored)) stored = [];
       const idx = stored.findIndex(e => e.id === id);
       if (idx !== -1) stored[idx] = payload;
       else stored.unshift(payload);
-      localStorage.setItem('faith_events_store', JSON.stringify(stored));
+      await window.FaithStorage.set('faith_events_store', stored);
     } catch (e) {}
 
     if (this.isAvailable()) {
@@ -214,14 +381,16 @@ class FaithRoomCloudService {
   }
 
   /**
-   * Delete Gathering from Firestore
+   * Delete Gathering from Firestore & IndexedDB
    */
   async deleteEvent(eventId) {
-    // Update local cache
+    window.FaithStorage.markCustomized();
     try {
-      let stored = JSON.parse(localStorage.getItem('faith_events_store') || '[]');
-      stored = stored.filter(e => e.id !== eventId);
-      localStorage.setItem('faith_events_store', JSON.stringify(stored));
+      let stored = await window.FaithStorage.get('faith_events_store', []);
+      if (Array.isArray(stored)) {
+        stored = stored.filter(e => e.id !== eventId);
+        await window.FaithStorage.set('faith_events_store', stored);
+      }
     } catch (e) {}
 
     if (this.isAvailable()) {
@@ -241,9 +410,8 @@ class FaithRoomCloudService {
    * Clear all Gatherings
    */
   async deleteAllEvents() {
-    try {
-      localStorage.setItem('faith_events_store', JSON.stringify([]));
-    } catch (e) {}
+    window.FaithStorage.markCustomized();
+    await window.FaithStorage.set('faith_events_store', []);
 
     if (this.isAvailable()) {
       try {
@@ -263,16 +431,10 @@ class FaithRoomCloudService {
   /**
    * Listen to real-time seat reservations
    */
-  listenReservations(onUpdate, fallbackData = []) {
+  async listenReservations(onUpdate, fallbackData = []) {
     if (!this.isAvailable()) {
-      try {
-        const stored = localStorage.getItem('faith_reservations_store');
-        if (stored) {
-          onUpdate(JSON.parse(stored));
-          return;
-        }
-      } catch (e) {}
-      onUpdate(fallbackData);
+      const stored = await window.FaithStorage.get('faith_reservations_store', fallbackData);
+      onUpdate(stored || fallbackData);
       return;
     }
 
@@ -281,26 +443,23 @@ class FaithRoomCloudService {
 
       const resRef = this.db.collection('reservations');
 
-      this.reservationsUnsubscribe = resRef.onSnapshot((snapshot) => {
+      this.reservationsUnsubscribe = resRef.onSnapshot(async (snapshot) => {
         const reservations = [];
         snapshot.forEach(doc => {
           reservations.push({ id: doc.id, ...doc.data() });
         });
 
-        // Sort newest first
         reservations.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-        try {
-          localStorage.setItem('faith_reservations_store', JSON.stringify(reservations));
-        } catch (e) {}
+        await window.FaithStorage.set('faith_reservations_store', reservations);
 
         this.notifyStatus('connected');
         onUpdate(reservations);
-      }, (err) => {
+      }, async (err) => {
         console.error('[FaithRoomCloud] Reservations listener error:', err);
         this.notifyStatus('offline');
-        const stored = localStorage.getItem('faith_reservations_store');
-        onUpdate(stored ? JSON.parse(stored) : fallbackData);
+        const stored = await window.FaithStorage.get('faith_reservations_store', fallbackData);
+        onUpdate(stored || fallbackData);
       });
     } catch (err) {
       console.error('[FaithRoomCloud] listenReservations failed:', err);
@@ -309,7 +468,7 @@ class FaithRoomCloudService {
   }
 
   /**
-   * Submit Seat Reservation to Cloud Firestore
+   * Submit Seat Reservation
    */
   async submitReservation(passData) {
     const id = passData.passId || `FRW-${Math.floor(1000 + Math.random() * 9000)}-LAG`;
@@ -321,9 +480,10 @@ class FaithRoomCloudService {
 
     // Update local cache
     try {
-      const stored = JSON.parse(localStorage.getItem('faith_reservations_store') || '[]');
+      let stored = await window.FaithStorage.get('faith_reservations_store', []);
+      if (!Array.isArray(stored)) stored = [];
       stored.unshift(payload);
-      localStorage.setItem('faith_reservations_store', JSON.stringify(stored));
+      await window.FaithStorage.set('faith_reservations_store', stored);
       localStorage.setItem('faith_room_pass', JSON.stringify(payload));
     } catch (e) {}
 
