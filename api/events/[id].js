@@ -1,4 +1,5 @@
 // api/events/[id].js - Dynamic handler for single event operations
+import defaultEvents from '../../data/events.json' with { type: 'json' };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,64 +16,58 @@ export default async function handler(req, res) {
   const kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   const KEY = 'faith_events_store';
 
-  if (req.method === 'DELETE') {
-    if (kvUrl && kvToken) {
-      try {
-        const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
-        });
-        if (getRes.ok) {
-          const r = await getRes.json();
-          let d = r.result;
-          while (typeof d === 'string') {
-            try { d = JSON.parse(d); } catch (e) { break; }
-          }
-          if (Array.isArray(d)) {
-            const filtered = d.filter(e => e.id !== id);
-            await fetch(`${kvUrl}/set/${KEY}`, {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${kvToken}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(filtered)
-            });
-          }
+  async function getKvEvents() {
+    if (!kvUrl || !kvToken) return null;
+    try {
+      const response = await fetch(`${kvUrl}/get/${KEY}`, {
+        headers: { Authorization: `Bearer ${kvToken}` },
+        cache: 'no-store'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        let data = result.result;
+        while (typeof data === 'string') {
+          try { data = JSON.parse(data); } catch (e) { break; }
         }
-      } catch (e) {}
+        if (Array.isArray(data)) return data;
+      }
+    } catch (err) {}
+    return null;
+  }
+
+  async function saveKvEvents(events) {
+    if (!kvUrl || !kvToken) return false;
+    try {
+      const setRes = await fetch(`${kvUrl}/set/${KEY}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${kvToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(events)
+      });
+      return setRes.ok;
+    } catch (err) {
+      return false;
     }
+  }
+
+  if (req.method === 'DELETE') {
+    let events = await getKvEvents();
+    if (!events) events = [...defaultEvents];
+    const filtered = events.filter(e => e.id !== id);
+    await saveKvEvents(filtered);
     return res.status(200).json({ success: true, message: `Event ${id} deleted` });
   }
 
   if (req.method === 'PUT') {
     const updated = req.body;
-    if (kvUrl && kvToken) {
-      try {
-        const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
-        });
-        if (getRes.ok) {
-          const r = await getRes.json();
-          let d = r.result;
-          while (typeof d === 'string') {
-            try { d = JSON.parse(d); } catch (e) { break; }
-          }
-          if (Array.isArray(d)) {
-            const idx = d.findIndex(e => e.id === id);
-            if (idx !== -1) {
-              d[idx] = { ...d[idx], ...updated };
-              await fetch(`${kvUrl}/set/${KEY}`, {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${kvToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(d)
-              });
-            }
-          }
-        }
-      } catch (e) {}
+    let events = await getKvEvents();
+    if (!events) events = [...defaultEvents];
+    const idx = events.findIndex(e => e.id === id);
+    if (idx !== -1) {
+      events[idx] = { ...events[idx], ...updated };
+      await saveKvEvents(events);
     }
     return res.status(200).json({ success: true, message: `Event ${id} updated` });
   }

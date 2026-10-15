@@ -1,4 +1,5 @@
 // api/upload.js - Vercel Serverless Function for Photo Uploads
+import defaultEvents from '../data/events.json' with { type: 'json' };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,32 +29,35 @@ export default async function handler(req, res) {
     if (kvUrl && kvToken) {
       try {
         const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
+          headers: { Authorization: `Bearer ${kvToken}` },
+          cache: 'no-store'
         });
+        let events = null;
         if (getRes.ok) {
           const r = await getRes.json();
-          let events = r.result;
-          while (typeof events === 'string') {
-            try { events = JSON.parse(events); } catch (e) { break; }
+          let d = r.result;
+          while (typeof d === 'string') {
+            try { d = JSON.parse(d); } catch (e) { break; }
           }
-          if (Array.isArray(events)) {
-            const ev = events.find(e => e.id === payload.eventId);
-            if (ev) {
-              ev.photos = ev.photos || [];
-              ev.photos.unshift(photoRecord);
-              if (!ev.coverImage || ev.coverImage.includes('hero-1.webp')) {
-                ev.coverImage = photoRecord.src;
-              }
-              await fetch(`${kvUrl}/set/${KEY}`, {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${kvToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(events)
-              });
-            }
+          if (Array.isArray(d)) events = d;
+        }
+        if (!events) events = [...defaultEvents];
+
+        const ev = events.find(e => e.id === payload.eventId);
+        if (ev) {
+          ev.photos = ev.photos || [];
+          ev.photos.unshift(photoRecord);
+          if (!ev.coverImage || ev.coverImage.includes('hero-1.webp')) {
+            ev.coverImage = photoRecord.src;
           }
+          await fetch(`${kvUrl}/set/${KEY}`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${kvToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(events)
+          });
         }
       } catch (err) {
         console.error('KV Upload attach error:', err);

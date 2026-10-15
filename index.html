@@ -1277,38 +1277,60 @@
         } catch (e) {}
       }
 
-      // 1. If customized: User-created/deleted events in IndexedDB/localStorage are authoritative!
-      if (isCustomized) {
-        const events = Array.isArray(localEvents) ? localEvents : [];
-        renderGatheringsGrid(events);
-        renderEventAlbums(events);
-        renderTargetGatheringOptions(events);
-        syncCountdownWithEvents(events);
-
-        // Listen for live multi-device Firestore sync
-        if (window.FaithRoomCloud) {
-          window.FaithRoomCloud.listenEvents((cloudEvents) => {
-            if (Array.isArray(cloudEvents)) {
-              renderGatheringsGrid(cloudEvents);
-              renderEventAlbums(cloudEvents);
-              renderTargetGatheringOptions(cloudEvents);
-              syncCountdownWithEvents(cloudEvents);
-            }
-          }, events);
-        }
-        return; // CRITICAL: Stop here so static defaultEvents NEVER overwrite customized data!
-      }
-
-      // 2. Initial render for pristine first visit
-      if (localEvents !== null && Array.isArray(localEvents) && localEvents.length > 0) {
+      // 1. Instant local render (IndexedDB / LocalStorage) to eliminate lag
+      if (Array.isArray(localEvents) && localEvents.length > 0) {
         renderGatheringsGrid(localEvents);
         renderEventAlbums(localEvents);
         renderTargetGatheringOptions(localEvents);
         syncCountdownWithEvents(localEvents);
       }
 
-      // 3. Real-time Cloud Sync (Firestore)
-      if (window.FaithRoomCloud) {
+      // 2. Fetch authoritative live data from Serverless Cloud API (/api/events)
+      async function syncEventsFromCloud() {
+        try {
+          const res = await fetch('/api/events', { cache: 'no-store' });
+          if (res.ok) {
+            const isFromDatabase = res.headers.get('X-Faith-Source') === 'database';
+            const data = await res.json();
+            const events = Array.isArray(data) ? data : (data.events || []);
+
+            // If from database or local has no data, update everything across all devices
+            if (isFromDatabase || !localEvents || localEvents.length === 0) {
+              const currentJson = JSON.stringify(localEvents || []);
+              const incomingJson = JSON.stringify(events);
+              if (currentJson !== incomingJson || !localEvents) {
+                localEvents = events;
+                renderGatheringsGrid(events);
+                renderEventAlbums(events);
+                renderTargetGatheringOptions(events);
+                syncCountdownWithEvents(events);
+                if (window.FaithStorage) {
+                  await window.FaithStorage.set('faith_events_store', events);
+                  window.FaithStorage.markCustomized();
+                }
+              }
+              return true;
+            }
+          }
+        } catch (e) {
+          console.warn('[FaithRoom] Cloud sync warning:', e);
+        }
+        return false;
+      }
+
+      // Fetch latest cloud events immediately
+      await syncEventsFromCloud();
+
+      // Setup multi-device background sync (every 12 seconds) & when returning to the tab
+      setInterval(syncEventsFromCloud, 12000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          syncEventsFromCloud();
+        }
+      });
+
+      // Also listen to Firestore real-time snapshot if configured
+      if (window.FaithRoomCloud && FaithRoomCloud.isAvailable()) {
         window.FaithRoomCloud.listenEvents((cloudEvents) => {
           if (Array.isArray(cloudEvents)) {
             renderGatheringsGrid(cloudEvents);
@@ -1317,43 +1339,6 @@
             syncCountdownWithEvents(cloudEvents);
           }
         }, localEvents || []);
-      }
-
-      // 4. Try fetching from serverless API (Only if NOT customized)
-      if (!isCustomized) {
-        try {
-          const res = await fetch('/api/events');
-          if (res.ok) {
-            const data = await res.json();
-            const events = Array.isArray(data) ? data : (data.events || []);
-            if (Array.isArray(events) && events.length > 0 && !(window.FaithStorage && window.FaithStorage.isCustomized())) {
-              renderGatheringsGrid(events);
-              renderEventAlbums(events);
-              renderTargetGatheringOptions(events);
-              syncCountdownWithEvents(events);
-              if (window.FaithStorage) await window.FaithStorage.set('faith_events_store', events);
-              return;
-            }
-          }
-        } catch (e) {}
-      }
-
-      // 5. Try fetching static data/events.json file (Only if NOT customized)
-      if (!isCustomized) {
-        try {
-          const staticRes = await fetch('data/events.json');
-          if (staticRes.ok) {
-            const events = await staticRes.json();
-            if (Array.isArray(events) && events.length > 0 && !(window.FaithStorage && window.FaithStorage.isCustomized())) {
-              renderGatheringsGrid(events);
-              renderEventAlbums(events);
-              renderTargetGatheringOptions(events);
-              syncCountdownWithEvents(events);
-              if (window.FaithStorage) await window.FaithStorage.set('faith_events_store', events);
-              return;
-            }
-          }
-        } catch (e) {}
       }
 
       // 6. Default static fallback (Guaranteed in-memory fallback for first-time visitors)

@@ -4,7 +4,7 @@
     "title": "The Upper Room Encounter Vol. 2",
     "category": "live",
     "categoryLabel": "SANCTUARY LIVE SESSION",
-    "dateText": "Upcoming Friday • 6:00 PM",
+    "dateText": "Fri, Oct 23, 2026 • 6:00 PM",
     "venueText": "Secret Sanctuary, Lagos / Online Stream",
     "maxPhysicalSeats": 30,
     "bookedPhysicalSeats": 14,
@@ -41,14 +41,17 @@
         "title": "Acoustic Strings & Cello",
         "desc": "Warm acoustic frequencies resonating through the auditorium."
       }
-    ]
+    ],
+    "date": "2026-10-23",
+    "time": "18:00",
+    "timeText": "6:00 PM"
   },
   {
     "id": "album-2",
     "title": "Outpouring & Overflow Session",
     "category": "recording",
     "categoryLabel": "ALBUM RECORDING SESSION",
-    "dateText": "Next Month • 7:00 PM",
+    "dateText": "Fri, Nov 20, 2026 • 7:00 PM",
     "venueText": "Main Sanctuary Room / 4K Live Broadcast",
     "maxPhysicalSeats": 30,
     "bookedPhysicalSeats": 9,
@@ -75,6 +78,9 @@
         "title": "Acoustic Guitarist Close-up",
         "desc": "Pure acoustic tones carrying the contemplative melody."
       }
-    ]
+    ],
+    "date": "2026-11-20",
+    "time": "19:00",
+    "timeText": "7:00 PM"
   }
 ]

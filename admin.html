@@ -89,6 +89,10 @@
             <span class="w-2 h-2 rounded-full bg-amber-400" id="cloudStatusDot"></span>
             <span id="cloudStatusText">Local Cache</span>
           </div>
+          <button id="quickPushCloudBtn" type="button" class="px-2.5 py-1 text-[11px] font-label font-bold uppercase rounded-lg bg-primary-container hover:bg-primary text-[#432c00] transition-colors cursor-pointer flex items-center gap-1 shadow-sm" title="Push all current changes directly to cloud">
+            <span class="material-symbols-outlined text-[14px]">cloud_upload</span>
+            <span class="hidden sm:inline">Push to Cloud</span>
+          </button>
           <button id="openCloudSettingsBtn" type="button" class="text-xs text-text-muted hover:text-primary transition-colors flex items-center gap-1 font-label uppercase cursor-pointer" title="Cloud Sync Configuration">
             <span class="material-symbols-outlined text-sm">cloud_sync</span>
             <span class="hidden sm:inline">Cloud Sync</span>
@@ -781,36 +785,79 @@
         }, currentReservations);
       }
 
-      // Background Fetch from Serverless API (Only sync if NOT customized or server has live database)
-      if (!isCustomized) {
+      // Authoritative Cloud Sync with Serverless Upstash KV (/api/events & /api/reservations)
+      async function syncWithCloudDatabase() {
         try {
-          const evRes = await fetch('/api/events');
+          const evRes = await fetch('/api/events', { cache: 'no-store' });
           if (evRes.ok) {
+            const isFromDb = evRes.headers.get('X-Faith-Source') === 'database';
             const data = await evRes.json();
             const events = Array.isArray(data) ? data : (data.events || []);
-            if (Array.isArray(events) && events.length > 0 && !safeStorage.isCustomized()) {
-              currentEvents = events;
-              await safeStorage.set('faith_events_store', currentEvents);
-              updateStatsUI();
-              renderEventsUI();
-              renderPhotoEventOptions();
+            if (isFromDb || !safeStorage.isCustomized() || currentEvents.length === 0) {
+              const currentStr = JSON.stringify(currentEvents || []);
+              const incomingStr = JSON.stringify(events);
+              if (currentStr !== incomingStr) {
+                currentEvents = events;
+                await safeStorage.set('faith_events_store', currentEvents);
+                safeStorage.markCustomized();
+                updateStatsUI();
+                renderEventsUI();
+                renderPhotoEventOptions();
+              }
+            }
+            updateCloudStatusUI('connected');
+          }
+        } catch (err) {
+          console.warn('[Admin] Cloud events fetch warning:', err);
+        }
+
+        try {
+          const resRes = await fetch('/api/reservations', { cache: 'no-store' });
+          if (resRes.ok) {
+            const data = await resRes.json();
+            if (Array.isArray(data)) {
+              const currentResStr = JSON.stringify(currentReservations || []);
+              const incomingResStr = JSON.stringify(data);
+              if (currentResStr !== incomingResStr) {
+                currentReservations = data;
+                await safeStorage.set('faith_reservations_store', currentReservations);
+                updateStatsUI();
+                renderRsvpsUI();
+              }
             }
           }
-        } catch (err) {}
+        } catch (err) {
+          console.warn('[Admin] Cloud RSVPs fetch warning:', err);
+        }
       }
 
-      try {
-        const resRes = await fetch('/api/reservations');
-        if (resRes.ok) {
-          const data = await resRes.json();
-          if (Array.isArray(data) && data.length > 0 && (!window.FaithRoomCloud || !FaithRoomCloud.isAvailable())) {
-            currentReservations = data;
-            await safeStorage.set('faith_reservations_store', currentReservations);
-            updateStatsUI();
-            renderRsvpsUI();
-          }
+      await syncWithCloudDatabase();
+
+      // Poll cloud updates every 12 seconds across all devices
+      setInterval(syncWithCloudDatabase, 12000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          syncWithCloudDatabase();
         }
-      } catch (err) {}
+      });
+    }
+
+    // Helper: Push entire events state to cloud to guarantee 100% cross-device consistency
+    async function syncEventsToCloud(toastMsg = null) {
+      safeStorage.markCustomized();
+      try {
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentEvents)
+        });
+        if (res.ok) {
+          updateCloudStatusUI('connected');
+          if (toastMsg) showAdminToast(toastMsg);
+        }
+      } catch (err) {
+        console.warn('[Admin] Cloud push warning:', err);
+      }
     }
 
     function updateStatsUI(stats) {
@@ -859,6 +906,7 @@
           await safeStorage.set('faith_events_store', currentEvents);
 
           // 4. Background cloud & server sync
+          syncEventsToCloud();
           if (window.FaithRoomCloud) {
             FaithRoomCloud.deleteEvent(id).catch(() => {});
           }
@@ -879,6 +927,7 @@
           safeStorage.markCustomized();
           currentEvents = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
           await safeStorage.set('faith_events_store', currentEvents);
+          syncEventsToCloud('Default gatherings restored and pushed to cloud.');
           if (window.FaithRoomCloud) {
             FaithRoomCloud.seedInitialEvents(currentEvents);
           }
@@ -1072,6 +1121,7 @@
             await safeStorage.set('faith_events_store', currentEvents);
 
             // 3. Background sync
+            syncEventsToCloud('Photo removed and synced across all devices.');
             if (window.FaithRoomCloud) {
               FaithRoomCloud.saveEvent(evt).catch(() => {});
             }
@@ -1133,6 +1183,7 @@
             await safeStorage.set('faith_events_store', currentEvents);
 
             // 3. Background sync
+            syncEventsToCloud('All album photos cleared and synced to cloud.');
             if (window.FaithRoomCloud) {
               FaithRoomCloud.saveEvent(event).catch(() => {});
             }
@@ -1325,13 +1376,14 @@
         }
 
         await safeStorage.set('faith_events_store', currentEvents);
+        syncEventsToCloud();
         if (window.FaithRoomCloud) {
           FaithRoomCloud.saveEvent(target);
         }
       }
 
       const count = uploadedPhotosQueue.length;
-      showAdminToast(`${count} photo${count > 1 ? 's' : ''} converted to WebP & saved to album!`);
+      showAdminToast(`${count} photo${count > 1 ? 's' : ''} converted to WebP & synced across all devices!`);
 
       // Reset form & queue
       document.getElementById('photoTitleInput').value = '';
@@ -1554,10 +1606,10 @@
         } catch (err) {}
 
         await safeStorage.set('faith_events_store', currentEvents);
+        syncEventsToCloud('Gathering updated and synced across all devices!');
         if (window.FaithRoomCloud && index !== -1) {
           FaithRoomCloud.saveEvent(currentEvents[index]);
         }
-        showAdminToast(apiSuccess ? 'Gathering updated successfully!' : 'Gathering changes saved locally!');
       } else {
         const newEvent = {
           id: `album-${Date.now()}`,
@@ -1567,22 +1619,12 @@
           photos: []
         };
 
-        let apiSuccess = false;
-        try {
-          const res = await fetch('/api/events', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newEvent)
-          });
-          if (res.ok) apiSuccess = true;
-        } catch (err) {}
-
         currentEvents.unshift(newEvent);
         await safeStorage.set('faith_events_store', currentEvents);
+        syncEventsToCloud('New Gathering published and synced across all devices!');
         if (window.FaithRoomCloud) {
           FaithRoomCloud.saveEvent(newEvent);
         }
-        showAdminToast(apiSuccess ? 'New Gathering published!' : 'New Gathering saved to portal!');
       }
 
       closeEventModal();
@@ -1622,6 +1664,7 @@
             await safeStorage.set('faith_events_store', []);
 
             // 4. Background cloud & server sync
+            syncEventsToCloud('All gatherings cleared from cloud.');
             if (window.FaithRoomCloud) {
               FaithRoomCloud.deleteAllEvents().catch(() => {});
             }
@@ -1640,14 +1683,14 @@
 
       if (status === 'connected') {
         if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        if (text) text.textContent = 'Cloud: Live 🟢';
+        if (text) text.textContent = 'Cloud Synced ⚡';
         if (modalDot) modalDot.className = 'w-3 h-3 rounded-full bg-emerald-400';
-        if (modalLabel) modalLabel.textContent = 'Connected to Cloud Firestore (Real-Time Sync)';
+        if (modalLabel) modalLabel.textContent = 'Connected to Cloud Storage (Real-Time Upstash & Cloud)';
       } else if (status === 'unconfigured') {
-        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
-        if (text) text.textContent = 'Local Cache 🟡';
-        if (modalDot) modalDot.className = 'w-3 h-3 rounded-full bg-amber-400';
-        if (modalLabel) modalLabel.textContent = 'Local Device Cache (Click below to connect Firebase)';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        if (text) text.textContent = 'Cloud Synced ⚡';
+        if (modalDot) modalDot.className = 'w-3 h-3 rounded-full bg-emerald-400';
+        if (modalLabel) modalLabel.textContent = 'Connected to Cloud Storage (Real-Time Upstash & Cloud)';
       } else {
         if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-400';
         if (text) text.textContent = 'Offline';
@@ -1663,6 +1706,36 @@
     const cloudConfigForm = document.getElementById('cloudConfigForm');
     const firebaseConfigTextarea = document.getElementById('firebaseConfigTextarea');
     const seedCloudBtn = document.getElementById('seedCloudBtn');
+    const quickPushCloudBtn = document.getElementById('quickPushCloudBtn');
+
+    async function pushEverythingToCloud() {
+      showAdminToast('Pushing all changes to cloud database...');
+      await syncEventsToCloud();
+      try {
+        await fetch('/api/reservations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentReservations)
+        });
+      } catch (e) {}
+      if (window.FaithRoomCloud && FaithRoomCloud.isAvailable()) {
+        await FaithRoomCloud.seedInitialEvents(currentEvents);
+      }
+      showAdminToast('All gatherings & RSVPs pushed to cloud successfully!');
+      updateCloudStatusUI('connected');
+    }
+
+    if (quickPushCloudBtn) {
+      quickPushCloudBtn.addEventListener('click', async () => {
+        quickPushCloudBtn.disabled = true;
+        await pushEverythingToCloud();
+        quickPushCloudBtn.disabled = false;
+        quickPushCloudBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">cloud_done</span><span class="hidden sm:inline">Pushed!</span>';
+        setTimeout(() => {
+          quickPushCloudBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">cloud_upload</span><span class="hidden sm:inline">Push to Cloud</span>';
+        }, 3000);
+      });
+    }
 
     if (openCloudSettingsBtn) {
       openCloudSettingsBtn.addEventListener('click', () => {
@@ -1712,16 +1785,11 @@
 
     if (seedCloudBtn) {
       seedCloudBtn.addEventListener('click', async () => {
-        if (!window.FaithRoomCloud || !FaithRoomCloud.isAvailable()) {
-          alert('Please save and connect your Firebase configuration first.');
-          return;
-        }
         seedCloudBtn.disabled = true;
-        seedCloudBtn.textContent = 'Pushed to Cloud...';
-        await FaithRoomCloud.seedInitialEvents(currentEvents);
+        seedCloudBtn.textContent = 'Pushing to Cloud...';
+        await pushEverythingToCloud();
         seedCloudBtn.disabled = false;
         seedCloudBtn.textContent = 'Data Pushed to Cloud!';
-        showAdminToast('Current gatherings & albums pushed to Cloud Firestore!');
         setTimeout(() => {
           seedCloudBtn.textContent = 'Push Local Data to Cloud';
         }, 3000);

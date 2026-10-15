@@ -14,104 +14,143 @@ export default async function handler(req, res) {
   const kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   const KEY = 'faith_events_store';
 
-  if (req.method === 'GET') {
-    if (kvUrl && kvToken) {
-      try {
-        const response = await fetch(`${kvUrl}/get/${KEY}`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
-        });
-        if (response.ok) {
-          const result = await response.json();
-          let data = result.result;
-          while (typeof data === 'string') {
-            try { data = JSON.parse(data); } catch(e) { break; }
-          }
-          if (Array.isArray(data)) {
-            res.setHeader('X-Faith-Source', 'database');
-            return res.status(200).json(data);
-          }
+  // Helper to fetch current events from KV
+  async function getKvEvents() {
+    if (!kvUrl || !kvToken) return null;
+    try {
+      const response = await fetch(`${kvUrl}/get/${KEY}`, {
+        headers: { Authorization: `Bearer ${kvToken}` },
+        cache: 'no-store'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        let data = result.result;
+        while (typeof data === 'string') {
+          try { data = JSON.parse(data); } catch (e) { break; }
         }
-      } catch (err) {
-        console.error('KV Read Error:', err);
+        if (Array.isArray(data)) return data;
       }
+    } catch (err) {
+      console.error('KV Read Error:', err);
     }
-    // Return default events with header indicating it is static fallback
+    return null;
+  }
+
+  // Helper to save events to KV
+  async function saveKvEvents(events) {
+    if (!kvUrl || !kvToken) return false;
+    try {
+      const setRes = await fetch(`${kvUrl}/set/${KEY}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${kvToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(events)
+      });
+      return setRes.ok;
+    } catch (err) {
+      console.error('KV Write Error:', err);
+      return false;
+    }
+  }
+
+  // 1. GET /api/events
+  if (req.method === 'GET') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    const cloudEvents = await getKvEvents();
+    if (cloudEvents !== null) {
+      res.setHeader('X-Faith-Source', 'database');
+      return res.status(200).json(cloudEvents);
+    }
+
+    // Auto-seed if database was empty
+    if (kvUrl && kvToken && defaultEvents) {
+      await saveKvEvents(defaultEvents);
+    }
+
     res.setHeader('X-Faith-Source', 'static-default');
     return res.status(200).json(defaultEvents || []);
   }
 
+  // 2. POST /api/events (Create Event or Sync Full Array)
   if (req.method === 'POST') {
-    const newEvent = req.body;
-    if (!newEvent || !newEvent.title) {
+    const body = req.body;
+    if (!body) {
+      return res.status(400).json({ error: 'Body is required' });
+    }
+
+    // Case A: Full array sync
+    if (Array.isArray(body) || (body.action === 'sync_all' && Array.isArray(body.events))) {
+      const fullList = Array.isArray(body) ? body : body.events;
+      await saveKvEvents(fullList);
+      return res.status(200).json({ success: true, count: fullList.length });
+    }
+
+    // Case B: Single event
+    const newEvent = body;
+    if (!newEvent.title) {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    if (kvUrl && kvToken) {
-      try {
-        const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
-        });
-        let events = [];
-        if (getRes.ok) {
-          const r = await getRes.json();
-          let d = r.result;
-          while (typeof d === 'string') {
-            try { d = JSON.parse(d); } catch(e) { break; }
-          }
-          if (Array.isArray(d)) events = d;
-          else events = [...defaultEvents];
-        }
+    let events = await getKvEvents();
+    if (!events) events = [...defaultEvents];
 
-        newEvent.id = newEvent.id || `album-${Date.now()}`;
-        events.unshift(newEvent);
+    newEvent.id = newEvent.id || `album-${Date.now()}`;
+    newEvent.bookedPhysicalSeats = newEvent.bookedPhysicalSeats || 0;
 
-        await fetch(`${kvUrl}/set/${KEY}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${kvToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(events)
-        });
+    const existingIdx = events.findIndex(e => e.id === newEvent.id);
+    if (existingIdx !== -1) {
+      events[existingIdx] = { ...events[existingIdx], ...newEvent };
+    } else {
+      events.unshift(newEvent);
+    }
 
-        return res.status(201).json({ success: true, event: newEvent });
-      } catch (err) {
-        return res.status(500).json({ error: 'Failed to write to KV: ' + err.message });
+    await saveKvEvents(events);
+    return res.status(201).json({ success: true, event: newEvent });
+  }
+
+  // 3. PUT /api/events (Update Event or Array)
+  if (req.method === 'PUT') {
+    const updated = req.body;
+    if (!updated) {
+      return res.status(400).json({ error: 'Body is required' });
+    }
+
+    if (Array.isArray(updated)) {
+      await saveKvEvents(updated);
+      return res.status(200).json({ success: true, count: updated.length });
+    }
+
+    const targetId = req.query?.id || updated.id;
+    let events = await getKvEvents();
+    if (!events) events = [...defaultEvents];
+
+    if (targetId) {
+      const idx = events.findIndex(e => e.id === targetId);
+      if (idx !== -1) {
+        events[idx] = { ...events[idx], ...updated };
+        await saveKvEvents(events);
       }
     }
 
-    return res.status(200).json({ success: true, event: newEvent, note: 'Saved to local device' });
+    return res.status(200).json({ success: true, message: `Event updated` });
   }
 
+  // 4. DELETE /api/events
   if (req.method === 'DELETE') {
     const id = req.query?.id;
-    if (kvUrl && kvToken) {
-      try {
-        let events = [];
-        if (id) {
-          const getRes = await fetch(`${kvUrl}/get/${KEY}`, {
-            headers: { Authorization: `Bearer ${kvToken}` }
-          });
-          if (getRes.ok) {
-            const r = await getRes.json();
-            let d = r.result;
-            while (typeof d === 'string') {
-              try { d = JSON.parse(d); } catch(e) { break; }
-            }
-            if (Array.isArray(d)) events = d.filter(e => e.id !== id);
-          }
-        }
-        await fetch(`${kvUrl}/set/${KEY}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${kvToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(events)
-        });
-      } catch(e) {}
+    if (id) {
+      let events = await getKvEvents();
+      if (!events) events = [...defaultEvents];
+      const filtered = events.filter(e => e.id !== id);
+      await saveKvEvents(filtered);
+      return res.status(200).json({ success: true, message: `Event ${id} deleted` });
+    } else {
+      // Delete all events
+      await saveKvEvents([]);
+      return res.status(200).json({ success: true, message: 'All events deleted' });
     }
-    return res.status(200).json({ success: true, message: id ? `Event ${id} deleted` : 'All events deleted' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
