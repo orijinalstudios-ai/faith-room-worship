@@ -839,12 +839,12 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4">
       <!-- Track Metadata -->
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 max-w-[65%] sm:max-w-none">
-        <button class="w-10 h-10 rounded-full bg-primary text-[#432c00] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20 cursor-pointer" id="playBtn" title="Play Todd Dulaney - Your Great Name">
+        <button class="w-10 h-10 rounded-full bg-primary text-[#432c00] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20 cursor-pointer" id="playBtn" title="Play Todd Dulaney - Your Great Name (Extended Version)">
           <span class="material-symbols-outlined text-[22px]" data-icon="play_arrow" id="playIcon">play_arrow</span>
         </button>
         <div class="truncate">
           <div class="flex items-center gap-2">
-            <h5 class="text-xs font-semibold text-text-primary truncate" id="playerTrackTitle">Your Great Name (Live)</h5>
+            <h5 class="text-xs font-semibold text-text-primary truncate" id="playerTrackTitle">Your Great Name (Extended Live)</h5>
             <!-- Equalizer Visualizer Bars -->
             <div id="equalizerVisualizer" class="hidden items-end gap-0.5 h-3">
               <span class="w-0.5 bg-primary rounded-full animate-eq1"></span>
@@ -863,7 +863,7 @@
         <div id="progressTrackContainer" class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden relative cursor-pointer hover:h-2 transition-all">
           <div class="bg-primary h-full w-[0%]" id="progressTrack"></div>
         </div>
-        <span class="text-[11px] font-label-sm text-text-muted font-mono" id="durationTime">05:40</span>
+        <span class="text-[11px] font-label-sm text-text-muted font-mono" id="durationTime">08:35</span>
       </div>
 
       <!-- Quick Action / Reservation Tag -->
@@ -1609,7 +1609,7 @@
 
     /* ==========================================================
        3. TODD DULANEY FAITH WORSHIP AUDIO STREAM
-       Worship track: "Your Great Name" (Live Worship) - Todd Dulaney
+       Worship track: "Your Great Name (Extended Version)" (Live in Orlando) - Todd Dulaney
        Includes live visualizer, time tracking, scrubbing & fallback
        ========================================================== */
     class WorshipPadEngine {
@@ -1709,15 +1709,36 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    /* Initialize YouTube Audio Player for genuine Todd Dulaney - Your Great Name */
+    /* Initialize YouTube Audio Player for Todd Dulaney - Your Great Name (Extended Version) */
+    let userInteractedForAudio = false;
+
+    function unlockAutoplayOnGesture() {
+      if (userInteractedForAudio) return;
+      userInteractedForAudio = true;
+      ['click', 'touchstart', 'keydown', 'scroll', 'pointerdown'].forEach(evt => {
+        window.removeEventListener(evt, unlockAutoplayOnGesture, { capture: true });
+      });
+      if (!isAudioPlaying && ytPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+        try {
+          ytPlayer.playVideo();
+        } catch (err) {
+          console.warn('Autoplay unlock notice:', err);
+        }
+      }
+    }
+
+    ['click', 'touchstart', 'keydown', 'scroll', 'pointerdown'].forEach(evt => {
+      window.addEventListener(evt, unlockAutoplayOnGesture, { capture: true, once: true, passive: true });
+    });
+
     window.onYouTubeIframeAPIReady = function() {
       try {
         ytPlayer = new YT.Player('ytPlayerContainer', {
           height: '100',
           width: '100',
-          videoId: 'dSr2BhSBtm0',
+          videoId: 'uWqkCGXItkc',
           playerVars: {
-            autoplay: 0,
+            autoplay: 1,
             controls: 0,
             disablekb: 1,
             fs: 0,
@@ -1726,13 +1747,22 @@
             playsinline: 1
           },
           events: {
-            onReady: function() {
+            onReady: function(event) {
               ytPlayerReady = true;
-              if (durationTimeElem) durationTimeElem.textContent = '05:40';
+              if (durationTimeElem) durationTimeElem.textContent = '08:35';
+              try {
+                if (typeof event.target.setVolume === 'function') {
+                  event.target.setVolume(85);
+                }
+                event.target.playVideo();
+              } catch (err) {
+                console.log('Autoplay deferred pending user interaction');
+              }
             },
             onStateChange: function(event) {
               if (event.data === YT.PlayerState.PLAYING) {
                 isAudioPlaying = true;
+                userInteractedForAudio = true;
                 if (playIcon) playIcon.textContent = 'pause';
                 if (equalizerVisualizer) {
                   equalizerVisualizer.classList.remove('hidden');
@@ -1763,7 +1793,7 @@
       if (ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
         if (ytPlayer.getPlayerState() === 1) { // 1 = YT.PlayerState.PLAYING
           const cur = ytPlayer.getCurrentTime() || 0;
-          const dur = ytPlayer.getDuration() || 340;
+          const dur = ytPlayer.getDuration() || 515;
           if (currentTimeElem) currentTimeElem.textContent = formatTime(cur);
           if (durationTimeElem && dur > 0) durationTimeElem.textContent = formatTime(dur);
           if (progressTrack && dur > 0) {
@@ -1805,13 +1835,14 @@
     }
 
     async function togglePlayback() {
+      userInteractedForAudio = true;
       // 1. Prefer authentic YouTube audio playback
       if (ytPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
         if (isAudioPlaying) {
           ytPlayer.pauseVideo();
         } else {
           ytPlayer.playVideo();
-          showToast('Now Playing: Todd Dulaney - Your Great Name (Official Worship)', 'music_note');
+          showToast('Now Playing: Todd Dulaney - Your Great Name (Extended Live)', 'music_note');
         }
         return;
       }
@@ -1825,7 +1856,7 @@
           equalizerVisualizer.classList.remove('hidden');
           equalizerVisualizer.classList.add('flex');
         }
-        showToast('Now Playing: Todd Dulaney - Your Great Name (Live Worship)', 'music_note');
+        showToast('Now Playing: Todd Dulaney - Your Great Name (Extended Live)', 'music_note');
 
         if (faithAudio) {
           try {
@@ -1863,7 +1894,7 @@
         const ratio = Math.max(0, Math.min(1, clickX / rect.width));
 
         if (ytPlayerReady && ytPlayer && typeof ytPlayer.seekTo === 'function') {
-          const dur = ytPlayer.getDuration() || 340;
+          const dur = ytPlayer.getDuration() || 515;
           ytPlayer.seekTo(ratio * dur, true);
           if (progressTrack) progressTrack.style.width = `${ratio * 100}%`;
           if (currentTimeElem) currentTimeElem.textContent = formatTime(ratio * dur);
