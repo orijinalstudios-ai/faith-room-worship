@@ -403,6 +403,27 @@
     </div>
   </div>
 
+  <!-- ==================== CUSTOM CONFIRMATION MODAL (Zero dependence on browser native dialogs) ==================== -->
+  <div id="faithConfirmModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-md bg-surface-charcoal border border-surface-border rounded-2xl p-6 sm:p-7 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+      <div class="w-14 h-14 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-rose-950/50">
+        <span class="material-symbols-outlined text-3xl" id="faithConfirmIcon">delete_forever</span>
+      </div>
+      <h3 id="faithConfirmTitle" class="font-headline text-lg sm:text-xl font-bold text-text-primary">Confirm Deletion</h3>
+      <p id="faithConfirmMessage" class="text-xs text-text-muted mt-2 font-light leading-relaxed max-w-sm mx-auto">Are you sure you want to proceed?</p>
+      
+      <div class="flex items-center justify-center gap-3 mt-6">
+        <button type="button" id="faithConfirmCancelBtn" class="flex-1 py-3 px-4 rounded-xl border border-surface-border text-xs uppercase font-label font-bold text-text-muted hover:text-text-primary hover:bg-surface-elevated active:scale-95 transition-all min-h-[46px] cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" id="faithConfirmProceedBtn" class="flex-1 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs uppercase font-label font-bold min-h-[46px] shadow-lg shadow-rose-900/40 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-base">delete</span>
+          <span id="faithConfirmProceedText">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="adminToast" class="fixed bottom-6 right-6 z-50 hidden items-center gap-3 px-5 py-3 rounded-xl bg-surface-charcoal border border-primary/50 text-text-primary shadow-2xl text-xs">
     <span class="material-symbols-outlined text-primary text-lg" id="adminToastIcon">check_circle</span>
@@ -414,6 +435,104 @@
     const STEWARD_PASSCODE = 'faith2026';
     let currentEvents = [];
     let currentReservations = [];
+
+    // Safe storage proxy that guarantees operation even if window.FaithStorage or Firebase fails
+    const safeStorage = {
+      markCustomized: () => {
+        try { localStorage.setItem('faith_events_customized', 'true'); } catch (e) {}
+        if (window.FaithStorage && typeof window.FaithStorage.markCustomized === 'function') {
+          try { window.FaithStorage.markCustomized(); } catch (e) {}
+        }
+      },
+      isCustomized: () => {
+        try {
+          if (localStorage.getItem('faith_events_customized') === 'true') return true;
+        } catch (e) {}
+        if (window.FaithStorage && typeof window.FaithStorage.isCustomized === 'function') {
+          return window.FaithStorage.isCustomized();
+        }
+        return false;
+      },
+      set: async (key, val) => {
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+        if (window.FaithStorage && typeof window.FaithStorage.set === 'function') {
+          try { await window.FaithStorage.set(key, val); } catch (e) {}
+        }
+      },
+      get: async (key, fallback = null) => {
+        let result = null;
+        if (window.FaithStorage && typeof window.FaithStorage.get === 'function') {
+          try { result = await window.FaithStorage.get(key, null); } catch (e) {}
+        }
+        if (result !== null && result !== undefined) return result;
+        try {
+          const ls = localStorage.getItem(key);
+          if (ls !== null) return JSON.parse(ls);
+        } catch (e) {}
+        return fallback;
+      }
+    };
+
+    // ==================== IN-PAGE CONFIRMATION MODAL CONTROLLER ====================
+    let pendingConfirmAction = null;
+
+    function requestConfirmation({ title, message, proceedText = 'Delete', icon = 'delete_forever', onConfirm }) {
+      const modal = document.getElementById('faithConfirmModal');
+      const titleEl = document.getElementById('faithConfirmTitle');
+      const msgEl = document.getElementById('faithConfirmMessage');
+      const proceedBtnText = document.getElementById('faithConfirmProceedText');
+      const iconEl = document.getElementById('faithConfirmIcon');
+
+      if (titleEl) titleEl.textContent = title || 'Confirm Deletion';
+      if (msgEl) msgEl.textContent = message || 'Are you sure you want to proceed?';
+      if (proceedBtnText) proceedBtnText.textContent = proceedText;
+      if (iconEl) iconEl.textContent = icon;
+
+      pendingConfirmAction = onConfirm;
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('faithConfirmModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      pendingConfirmAction = null;
+    }
+
+    const faithConfirmCancelBtn = document.getElementById('faithConfirmCancelBtn');
+    if (faithConfirmCancelBtn) {
+      faithConfirmCancelBtn.addEventListener('click', closeConfirmModal);
+    }
+
+    const faithConfirmProceedBtn = document.getElementById('faithConfirmProceedBtn');
+    if (faithConfirmProceedBtn) {
+      faithConfirmProceedBtn.addEventListener('click', async () => {
+        if (typeof pendingConfirmAction === 'function') {
+          const action = pendingConfirmAction;
+          closeConfirmModal();
+          try {
+            await action();
+          } catch (err) {
+            console.error('Error in confirmed action:', err);
+          }
+        } else {
+          closeConfirmModal();
+        }
+      });
+    }
+
+    const faithConfirmModalEl = document.getElementById('faithConfirmModal');
+    if (faithConfirmModalEl) {
+      faithConfirmModalEl.addEventListener('click', (e) => {
+        if (e.target === faithConfirmModalEl) closeConfirmModal();
+      });
+    }
 
     // Auth gate check
     const loginScreen = document.getElementById('loginScreen');
@@ -604,23 +723,9 @@
 
     // Load Data (Multi-Tier Resilient Strategy: IndexedDB -> Cloud Firestore -> LocalStorage -> API -> Defaults)
     async function loadAllDashboardData() {
-      const isCustomized = window.FaithStorage ? window.FaithStorage.isCustomized() : (localStorage.getItem('faith_events_customized') === 'true');
-      let localEvents = window.FaithStorage ? await window.FaithStorage.get('faith_events_store', null) : null;
-      let localReservations = window.FaithStorage ? await window.FaithStorage.get('faith_reservations_store', null) : null;
-
-      if (localEvents === null) {
-        try {
-          const storedEv = localStorage.getItem('faith_events_store');
-          if (storedEv) localEvents = JSON.parse(storedEv);
-        } catch (e) {}
-      }
-
-      if (localReservations === null) {
-        try {
-          const storedRes = localStorage.getItem('faith_reservations_store');
-          if (storedRes) localReservations = JSON.parse(storedRes);
-        } catch (e) {}
-      }
+      const isCustomized = safeStorage.isCustomized();
+      let localEvents = await safeStorage.get('faith_events_store', null);
+      let localReservations = await safeStorage.get('faith_reservations_store', null);
 
       // Initial instant rendering: If customized, respect user's data (even if 0 events!)
       if (isCustomized) {
@@ -668,11 +773,10 @@
           const evRes = await fetch('/api/events');
           if (evRes.ok) {
             const data = await evRes.json();
-            const source = evRes.headers.get('X-Faith-Source');
             const events = Array.isArray(data) ? data : (data.events || []);
-            if (Array.isArray(events) && events.length > 0 && !window.FaithStorage.isCustomized()) {
+            if (Array.isArray(events) && events.length > 0 && !safeStorage.isCustomized()) {
               currentEvents = events;
-              await window.FaithStorage.set('faith_events_store', currentEvents);
+              await safeStorage.set('faith_events_store', currentEvents);
               updateStatsUI();
               renderEventsUI();
               renderPhotoEventOptions();
@@ -687,7 +791,7 @@
           const data = await resRes.json();
           if (Array.isArray(data) && data.length > 0 && (!window.FaithRoomCloud || !FaithRoomCloud.isAvailable())) {
             currentReservations = data;
-            await window.FaithStorage.set('faith_reservations_store', currentReservations);
+            await safeStorage.set('faith_reservations_store', currentReservations);
             updateStatsUI();
             renderRsvpsUI();
           }
@@ -716,6 +820,62 @@
       document.getElementById('statTotalPhotos').textContent = totalPhotos;
     }
 
+    // Execute Gathering Deletion (No native browser popups - 100% immune to popup blockers)
+    async function executeDeleteGathering(id) {
+      const target = currentEvents.find(e => e.id === id);
+      const name = target ? target.title : 'this gathering';
+
+      requestConfirmation({
+        title: 'Delete Gathering?',
+        message: `Are you sure you want to delete "${name}"? This will permanently remove this gathering and its photos from both this portal and the public website.`,
+        proceedText: 'Delete Gathering',
+        icon: 'delete_forever',
+        onConfirm: async () => {
+          // 1. Mark customized so default seed never overwrites
+          safeStorage.markCustomized();
+
+          // 2. Immediately remove from current state & update UI (0ms latency!)
+          currentEvents = currentEvents.filter(e => e.id !== id);
+          updateStatsUI();
+          renderEventsUI();
+          renderPhotoEventOptions();
+          showAdminToast('Gathering deleted successfully.');
+
+          // 3. Persist to IndexedDB and LocalStorage
+          await safeStorage.set('faith_events_store', currentEvents);
+
+          // 4. Background cloud & server sync
+          if (window.FaithRoomCloud) {
+            FaithRoomCloud.deleteEvent(id).catch(() => {});
+          }
+          fetch(`/api/events/${id}`, { method: 'DELETE' }).catch(() => {});
+          fetch(`/api/events?id=${id}`, { method: 'DELETE' }).catch(() => {});
+        }
+      });
+    }
+
+    // Restore Default Gatherings if steward wants to reset
+    window.restoreDefaultGatherings = async function() {
+      requestConfirmation({
+        title: 'Restore Default Gatherings?',
+        message: 'This will reset your portal and website back to the initial 4 Faith Room worship gatherings.',
+        proceedText: 'Restore Defaults',
+        icon: 'restart_alt',
+        onConfirm: async () => {
+          safeStorage.markCustomized();
+          currentEvents = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
+          await safeStorage.set('faith_events_store', currentEvents);
+          if (window.FaithRoomCloud) {
+            FaithRoomCloud.seedInitialEvents(currentEvents);
+          }
+          updateStatsUI();
+          renderEventsUI();
+          renderPhotoEventOptions();
+          showAdminToast('Default gatherings restored.');
+        }
+      });
+    };
+
     // Render Events List
     function renderEventsUI() {
       const container = document.getElementById('eventsListContainer');
@@ -727,10 +887,16 @@
             <span class="material-symbols-outlined text-4xl text-primary/60 mb-2 block">event_busy</span>
             <h4 class="font-headline text-base text-text-primary font-bold mb-1">No Gatherings Found</h4>
             <p class="text-xs text-text-muted mb-4 max-w-sm mx-auto">All gatherings have been cleared or none have been published yet.</p>
-            <button type="button" onclick="openNewEventModal()" class="px-4 py-2 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer inline-flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">add_circle</span>
-              Create First Gathering
-            </button>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+              <button type="button" onclick="openNewEventModal()" class="px-4 py-2.5 bg-primary-container hover:bg-primary text-[#432c00] font-label text-xs uppercase font-bold rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer inline-flex items-center gap-1.5 min-h-[42px]">
+                <span class="material-symbols-outlined text-sm">add_circle</span>
+                Create First Gathering
+              </button>
+              <button type="button" onclick="restoreDefaultGatherings()" class="px-4 py-2.5 bg-surface-elevated hover:bg-surface-border text-text-primary font-label text-xs uppercase font-semibold rounded-xl border border-surface-border transition-all cursor-pointer inline-flex items-center gap-1.5 min-h-[42px]">
+                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                Restore Default Gatherings
+              </button>
+            </div>
           </div>
         `;
         return;
@@ -777,49 +943,30 @@
         `;
         container.appendChild(card);
       });
+    }
 
-      // Attach edit listeners
-      container.querySelectorAll('.edit-event-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    // Top-Level Event Delegation for Events Container (100% reliable across all dynamic re-renders)
+    const eventsContainer = document.getElementById('eventsListContainer');
+    if (eventsContainer) {
+      eventsContainer.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-event-btn');
+        if (deleteBtn) {
           e.preventDefault();
           e.stopPropagation();
-          const id = btn.dataset.id;
-          const ev = currentEvents.find(e => e.id === id);
+          const id = deleteBtn.dataset.id;
+          if (id) executeDeleteGathering(id);
+          return;
+        }
+
+        const editBtn = e.target.closest('.edit-event-btn');
+        if (editBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = editBtn.dataset.id;
+          const ev = currentEvents.find(evItem => evItem.id === id);
           if (ev) openEditEventModal(ev);
-        });
-      });
-
-      // Attach delete listeners (Optimistic instantaneous UI update)
-      container.querySelectorAll('.delete-event-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const id = btn.dataset.id;
-          const target = currentEvents.find(e => e.id === id);
-          const name = target ? target.title : 'this gathering';
-
-          if (confirm(`Are you sure you want to delete "${name}"?`)) {
-            // 1. Mark customized so default seed never overwrites
-            window.FaithStorage.markCustomized();
-
-            // 2. Immediately remove from current state & update UI (0ms latency!)
-            currentEvents = currentEvents.filter(e => e.id !== id);
-            updateStatsUI();
-            renderEventsUI();
-            renderPhotoEventOptions();
-            showAdminToast('Gathering deleted successfully.');
-
-            // 3. Persist to IndexedDB and LocalStorage
-            await window.FaithStorage.set('faith_events_store', currentEvents);
-
-            // 4. Background cloud & server sync
-            if (window.FaithRoomCloud) {
-              FaithRoomCloud.deleteEvent(id).catch(() => {});
-            }
-            fetch(`/api/events/${id}`, { method: 'DELETE' }).catch(() => {});
-            fetch(`/api/events?id=${id}`, { method: 'DELETE' }).catch(() => {});
-          }
-        });
+          return;
+        }
       });
     }
 
@@ -881,49 +1028,66 @@
         grid.appendChild(item);
       });
 
-      // Attach delete click listeners to individual photo cards (Instant UI update)
-      grid.querySelectorAll('.delete-photo-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const targetEventId = btn.dataset.eventId;
-          const targetPhotoIdx = parseInt(btn.dataset.photoIdx, 10);
+    }
 
-          if (confirm('Are you sure you want to delete this photo from the album?')) {
-            window.FaithStorage.markCustomized();
+    // Execute Photo Deletion (No native browser popups)
+    async function executeDeletePhoto(targetEventId, targetPhotoIdx) {
+      requestConfirmation({
+        title: 'Remove Photo?',
+        message: 'Are you sure you want to delete this photo from the album?',
+        proceedText: 'Delete Photo',
+        icon: 'delete',
+        onConfirm: async () => {
+          safeStorage.markCustomized();
 
-            const evt = currentEvents.find(ev => ev.id === targetEventId);
-            if (evt && evt.photos) {
-              evt.photos.splice(targetPhotoIdx, 1);
-              if (evt.photos.length === 0) {
-                evt.coverImage = 'Images/hero-1.webp';
-              }
-
-              // 1. Instant UI update
-              updateStatsUI();
-              renderEventsUI();
-              renderPhotoEventOptions();
-              renderCurrentAlbumPhotos(targetEventId);
-              showAdminToast('Photo removed from album.');
-
-              // 2. Persist to storage
-              await window.FaithStorage.set('faith_events_store', currentEvents);
-
-              // 3. Background sync
-              if (window.FaithRoomCloud) {
-                FaithRoomCloud.saveEvent(evt).catch(() => {});
-              }
-              fetch(`/api/events/${targetEventId}/photos/${targetPhotoIdx}`, { method: 'DELETE' }).catch(() => {});
+          const evt = currentEvents.find(ev => ev.id === targetEventId);
+          if (evt && evt.photos) {
+            evt.photos.splice(targetPhotoIdx, 1);
+            if (evt.photos.length === 0) {
+              evt.coverImage = 'Images/hero-1.webp';
             }
+
+            // 1. Instant UI update
+            updateStatsUI();
+            renderEventsUI();
+            renderPhotoEventOptions();
+            renderCurrentAlbumPhotos(targetEventId);
+            showAdminToast('Photo removed from album.');
+
+            // 2. Persist to storage
+            await safeStorage.set('faith_events_store', currentEvents);
+
+            // 3. Background sync
+            if (window.FaithRoomCloud) {
+              FaithRoomCloud.saveEvent(evt).catch(() => {});
+            }
+            fetch(`/api/events/${targetEventId}/photos/${targetPhotoIdx}`, { method: 'DELETE' }).catch(() => {});
           }
-        });
+        }
       });
     }
 
-    // Clear entire album gallery (Instant UI update)
+    // Top-Level Event Delegation for Photo Album Grid
+    const albumPhotosGrid = document.getElementById('currentAlbumPhotosGrid');
+    if (albumPhotosGrid) {
+      albumPhotosGrid.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-photo-btn');
+        if (deleteBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const targetEventId = deleteBtn.dataset.eventId;
+          const targetPhotoIdx = parseInt(deleteBtn.dataset.photoIdx, 10);
+          if (targetEventId !== undefined && !isNaN(targetPhotoIdx)) {
+            executeDeletePhoto(targetEventId, targetPhotoIdx);
+          }
+        }
+      });
+    }
+
+    // Clear entire album gallery (Custom In-Page Confirmation Modal)
     const clearAlbumPhotosBtn = document.getElementById('clearAlbumPhotosBtn');
     if (clearAlbumPhotosBtn) {
-      clearAlbumPhotosBtn.addEventListener('click', async (e) => {
+      clearAlbumPhotosBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         const select = document.getElementById('photoEventSelect');
@@ -935,26 +1099,32 @@
           return;
         }
 
-        if (confirm(`Are you sure you want to delete ALL photos in "${event.title}"?`)) {
-          window.FaithStorage.markCustomized();
-          event.photos = [];
+        requestConfirmation({
+          title: 'Clear Entire Album?',
+          message: `Are you sure you want to delete ALL photos in "${event.title}"?`,
+          proceedText: 'Clear All Photos',
+          icon: 'delete_sweep',
+          onConfirm: async () => {
+            safeStorage.markCustomized();
+            event.photos = [];
 
-          // 1. Instant UI update
-          updateStatsUI();
-          renderEventsUI();
-          renderPhotoEventOptions();
-          renderCurrentAlbumPhotos(eventId);
-          showAdminToast('All album photos cleared.');
+            // 1. Instant UI update
+            updateStatsUI();
+            renderEventsUI();
+            renderPhotoEventOptions();
+            renderCurrentAlbumPhotos(eventId);
+            showAdminToast('All album photos cleared.');
 
-          // 2. Persist to storage
-          await window.FaithStorage.set('faith_events_store', currentEvents);
+            // 2. Persist to storage
+            await safeStorage.set('faith_events_store', currentEvents);
 
-          // 3. Background sync
-          if (window.FaithRoomCloud) {
-            FaithRoomCloud.saveEvent(event).catch(() => {});
+            // 3. Background sync
+            if (window.FaithRoomCloud) {
+              FaithRoomCloud.saveEvent(event).catch(() => {});
+            }
+            fetch(`/api/events/${eventId}/photos`, { method: 'DELETE' }).catch(() => {});
           }
-          fetch(`/api/events/${eventId}/photos`, { method: 'DELETE' }).catch(() => {});
-        }
+        });
       });
     }
 
@@ -1030,7 +1200,7 @@
         base64Data: uploadedBase64
       };
 
-      window.FaithStorage.markCustomized();
+      safeStorage.markCustomized();
 
       let apiSuccess = false;
       try {
@@ -1055,7 +1225,7 @@
         if (!target.coverImage || target.coverImage.includes('hero-1.webp')) {
           target.coverImage = payload.base64Data;
         }
-        await window.FaithStorage.set('faith_events_store', currentEvents);
+        await safeStorage.set('faith_events_store', currentEvents);
         if (window.FaithRoomCloud) {
           FaithRoomCloud.saveEvent(target);
         }
@@ -1213,7 +1383,7 @@
         description: document.getElementById('eventDescInput').value.trim()
       };
 
-      window.FaithStorage.markCustomized();
+      safeStorage.markCustomized();
 
       if (isEditing) {
         const targetId = editingEventId.value;
@@ -1235,7 +1405,7 @@
           if (res.ok) apiSuccess = true;
         } catch (err) {}
 
-        await window.FaithStorage.set('faith_events_store', currentEvents);
+        await safeStorage.set('faith_events_store', currentEvents);
         if (window.FaithRoomCloud && index !== -1) {
           FaithRoomCloud.saveEvent(currentEvents[index]);
         }
@@ -1260,7 +1430,7 @@
         } catch (err) {}
 
         currentEvents.unshift(newEvent);
-        await window.FaithStorage.set('faith_events_store', currentEvents);
+        await safeStorage.set('faith_events_store', currentEvents);
         if (window.FaithRoomCloud) {
           FaithRoomCloud.saveEvent(newEvent);
         }
@@ -1273,36 +1443,43 @@
       renderPhotoEventOptions();
     });
 
-    // Delete All Events Button Handler (Instant UI update)
+    // Delete All Events Button Handler (Custom In-Page Confirmation Modal)
     const deleteAllEventsBtn = document.getElementById('deleteAllEventsBtn');
     if (deleteAllEventsBtn) {
-      deleteAllEventsBtn.addEventListener('click', async (e) => {
+      deleteAllEventsBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (currentEvents.length === 0) {
           showAdminToast('No gatherings to delete.');
           return;
         }
-        if (confirm(`Are you sure you want to delete ALL (${currentEvents.length}) gatherings? This will remove all events and their photo albums.`)) {
-          // 1. Mark customized
-          window.FaithStorage.markCustomized();
 
-          // 2. Immediately update in-memory state & UI (0ms latency!)
-          currentEvents = [];
-          updateStatsUI();
-          renderEventsUI();
-          renderPhotoEventOptions();
-          showAdminToast('All gatherings deleted.');
+        requestConfirmation({
+          title: 'Delete All Gatherings?',
+          message: `Are you sure you want to delete ALL (${currentEvents.length}) gatherings? This will permanently clear all events and photo albums from the website.`,
+          proceedText: 'Delete All Gatherings',
+          icon: 'delete_sweep',
+          onConfirm: async () => {
+            // 1. Mark customized
+            safeStorage.markCustomized();
 
-          // 3. Persist to storage
-          await window.FaithStorage.set('faith_events_store', []);
+            // 2. Immediately update in-memory state & UI (0ms latency!)
+            currentEvents = [];
+            updateStatsUI();
+            renderEventsUI();
+            renderPhotoEventOptions();
+            showAdminToast('All gatherings deleted.');
 
-          // 4. Background cloud & server sync
-          if (window.FaithRoomCloud) {
-            FaithRoomCloud.deleteAllEvents().catch(() => {});
+            // 3. Persist to storage
+            await safeStorage.set('faith_events_store', []);
+
+            // 4. Background cloud & server sync
+            if (window.FaithRoomCloud) {
+              FaithRoomCloud.deleteAllEvents().catch(() => {});
+            }
+            fetch('/api/events', { method: 'DELETE' }).catch(() => {});
           }
-          fetch('/api/events', { method: 'DELETE' }).catch(() => {});
-        }
+        });
       });
     }
 
