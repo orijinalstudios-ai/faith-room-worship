@@ -1429,7 +1429,32 @@
       if (window.FaithStorage) await window.FaithStorage.set('faith_events_store', defaultEvents);
     }
 
-    /* Synchronizes the Live Countdown Bar with events list. If corresponding event is deleted, updates to next or hides cleanly */
+    /* Parses the event date to a real Date object if possible */
+    function getEventDateObj(ev) {
+      if (!ev) return null;
+      if (ev.date) {
+        const timeStr = ev.time || '18:00';
+        const formattedTime = timeStr.length === 5 ? timeStr + ':00' : timeStr;
+        const d = new Date(`${ev.date}T${formattedTime}`);
+        if (!isNaN(d.getTime())) return d;
+      }
+      if (ev.dateText) {
+        const clean = ev.dateText.replace('•', ' ').replace(/\s+/g, ' ').trim();
+        const d = new Date(clean);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return null;
+    }
+
+    /* Checks if an event is in the past */
+    function isEventPast(ev) {
+      if (!ev) return false;
+      const d = getEventDateObj(ev);
+      if (!d) return false;
+      return d.getTime() < Date.now();
+    }
+
+    /* Synchronizes the Live Countdown Bar with events list. If no event or all event dates have passed, completely hides the countdown timer */
     function syncCountdownWithEvents(events) {
       const countdownSection = document.getElementById('countdown');
       const countdownTitle = document.getElementById('countdownEventTitle');
@@ -1437,24 +1462,34 @@
       if (!countdownSection) return;
 
       if (!events || !Array.isArray(events) || events.length === 0) {
-        // If event is deleted and no gatherings remain, hide the countdown section cleanly
         countdownSection.classList.add('hidden');
+        activeCountdownTargetDate = null;
         return;
       }
 
-      // Find the earliest upcoming event or first active gathering
-      const now = new Date();
-      const activeEvent = events.find(e => {
-        if (!e.date) return false;
-        const timeStr = e.time || '18:00';
-        const d = new Date(`${e.date}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
-        return d.getTime() > now.getTime();
-      }) || events[0];
+      const now = Date.now();
+      // Filter for strictly upcoming events whose date is in the future
+      const upcomingEvents = events.filter(e => {
+        const d = getEventDateObj(e);
+        return d !== null && d.getTime() > now;
+      });
 
-      if (!activeEvent) {
+      if (upcomingEvents.length === 0) {
+        // When there is no event or the event date is passed, do not display any countdown timer
         countdownSection.classList.add('hidden');
+        activeCountdownTargetDate = null;
         return;
       }
+
+      // Sort upcoming events to find the earliest upcoming event
+      upcomingEvents.sort((a, b) => {
+        const da = getEventDateObj(a).getTime();
+        const db = getEventDateObj(b).getTime();
+        return da - db;
+      });
+
+      const activeEvent = upcomingEvents[0];
+      const targetDate = getEventDateObj(activeEvent);
 
       countdownSection.classList.remove('hidden');
 
@@ -1465,29 +1500,17 @@
       if (countdownSubtitle) {
         const dText = activeEvent.dateText || activeEvent.date || 'Upcoming Gathering';
         const tText = activeEvent.timeText || activeEvent.time || '6:00 PM';
-        const loc = activeEvent.location || 'Secret Sanctuary, Lagos & Global Broadcast';
+        const loc = activeEvent.venueText || activeEvent.location || 'Secret Sanctuary, Lagos & Global Broadcast';
         countdownSubtitle.innerHTML = `${dText} • ${tText} • ${loc}`;
       }
 
-      // Update target date for countdown timer
-      let target = null;
-      if (activeEvent.date) {
-        const timeStr = activeEvent.time || '18:00';
-        const parsed = new Date(`${activeEvent.date}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
-        if (!isNaN(parsed.getTime())) {
-          target = parsed;
-        }
-      }
-      if (!target || target.getTime() <= now.getTime()) {
-        target = getNextGatheringDate();
-      }
-      activeCountdownTargetDate = target;
+      activeCountdownTargetDate = targetDate;
       if (typeof updateCountdown === 'function') {
         updateCountdown();
       }
     }
 
-    /* Renders Upcoming Gatherings Grid dynamically so deletions & additions reflect immediately */
+    /* Renders Upcoming Gatherings Grid dynamically so past events show a disabled/concluded state */
     function renderGatheringsGrid(events) {
       const container = document.getElementById('gatheringsGrid');
       if (!container) return;
@@ -1504,23 +1527,32 @@
       }
 
       events.forEach((ev) => {
+        const isPast = isEventPast(ev);
         const card = document.createElement('div');
         const cat = ev.category || 'live';
         const catLabel = ev.categoryLabel || (cat === 'live' ? 'Live Session' : cat === 'recording' ? 'Album Recording' : 'Acoustic Night');
         const dateBadge = (ev.dateText || 'UPCOMING FRIDAY').toUpperCase();
-        const timeBadge = ev.timeText || '6:00 PM';
+        const timeBadge = ev.timeText || ev.time || '6:00 PM';
         const cover = ev.coverImage || 'Images/thumb-1.webp';
 
-        card.className = 'gathering-card card-hover-lift group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col justify-between';
+        card.className = `gathering-card card-hover-lift group bg-surface-charcoal border ${isPast ? 'border-surface-border/60 opacity-80' : 'border-surface-border hover:border-primary/50'} rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between`;
         card.dataset.category = cat;
         card.dataset.event = ev.title;
 
         card.innerHTML = `
           <div class="relative h-56 overflow-hidden">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="${cover}" alt="${ev.title}">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isPast ? 'grayscale-[25%]' : ''}" loading="lazy" src="${cover}" alt="${ev.title}">
             <div class="absolute inset-0 bg-gradient-to-t from-surface-charcoal via-transparent to-black/40"></div>
-            <div class="absolute top-4 left-4 bg-surface-charcoal/90 border border-surface-border text-primary font-label-sm text-label-sm uppercase px-3 py-1 rounded-full font-semibold">
-              ${catLabel}
+            <div class="absolute top-4 left-4 flex items-center gap-1.5 flex-wrap">
+              <span class="bg-surface-charcoal/90 border border-surface-border text-primary font-label-sm text-label-sm uppercase px-3 py-1 rounded-full font-semibold">
+                ${catLabel}
+              </span>
+              ${isPast ? `
+                <span class="bg-surface-elevated/95 border border-rose-500/40 text-rose-300 font-label-sm text-[10px] uppercase px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  Concluded
+                </span>
+              ` : ''}
             </div>
             <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
               <span class="font-label-lg text-label-lg text-text-primary font-bold truncate max-w-[65%]">${dateBadge}</span>
@@ -1544,29 +1576,38 @@
                 </div>
               </div>
             </div>
-            <button class="apply-seat-btn btn-glow w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer min-h-[44px]" data-event-title="${ev.title}">
-              Reserve Seat
-            </button>
+            ${isPast ? `
+              <button type="button" disabled class="w-full py-3 bg-surface-elevated text-text-muted/60 border border-surface-border/50 font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl cursor-not-allowed opacity-75 min-h-[44px] flex items-center justify-center gap-1.5 shadow-none" title="This gathering has concluded">
+                <span class="material-symbols-outlined text-sm">event_available</span>
+                Gathering Concluded
+              </button>
+            ` : `
+              <button class="apply-seat-btn btn-glow w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer min-h-[44px]" data-event-title="${ev.title}">
+                Reserve Seat
+              </button>
+            `}
           </div>
         `;
 
-        const applyBtn = card.querySelector('.apply-seat-btn');
-        if (applyBtn) {
-          applyBtn.addEventListener('click', () => {
-            const targetGatheringSelect = document.getElementById('targetGathering');
-            if (targetGatheringSelect) {
-              for (let option of targetGatheringSelect.options) {
-                if (option.value.includes(ev.title) || option.text.includes(ev.title)) {
-                  option.selected = true;
-                  break;
+        if (!isPast) {
+          const applyBtn = card.querySelector('.apply-seat-btn');
+          if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+              const targetGatheringSelect = document.getElementById('targetGathering');
+              if (targetGatheringSelect) {
+                for (let option of targetGatheringSelect.options) {
+                  if (option.value.includes(ev.title) || option.text.includes(ev.title)) {
+                    option.selected = true;
+                    break;
+                  }
                 }
               }
-            }
-            const reservationSection = document.getElementById('reservation');
-            if (reservationSection) {
-              reservationSection.scrollIntoView({ behavior: 'smooth' });
-            }
-          });
+              const reservationSection = document.getElementById('reservation');
+              if (reservationSection) {
+                reservationSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            });
+          }
         }
 
         container.appendChild(card);
@@ -1660,10 +1701,21 @@
         return;
       }
 
+      let hasSelected = false;
       events.forEach(ev => {
+        const isPast = isEventPast(ev);
         const opt = document.createElement('option');
         opt.value = ev.title;
-        opt.textContent = `${ev.title} (${ev.dateText || 'Upcoming'})`;
+        if (isPast) {
+          opt.disabled = true;
+          opt.textContent = `${ev.title} (Concluded - Registration Closed)`;
+        } else {
+          opt.textContent = `${ev.title} (${ev.dateText || 'Upcoming'})`;
+          if (!hasSelected) {
+            opt.selected = true;
+            hasSelected = true;
+          }
+        }
         select.appendChild(opt);
       });
     }
@@ -2062,34 +2114,38 @@
       return nextDate;
     }
 
-    let activeCountdownTargetDate = getNextGatheringDate();
-    const countdownDateSubtitle = document.getElementById('countdownDateSubtitle');
-    if (countdownDateSubtitle) {
-      const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
-      countdownDateSubtitle.innerHTML = `${activeCountdownTargetDate.toLocaleDateString(undefined, options)} • 6:00 PM GMT+1 • Secret Sanctuary, Lagos &amp; Global Broadcast`;
-    }
+    let activeCountdownTargetDate = null; // Controlled strictly by syncCountdownWithEvents based on actual upcoming gatherings
 
     function updateCountdown() {
-      if (!activeCountdownTargetDate) return;
+      const countdownSection = document.getElementById('countdown');
+      if (!activeCountdownTargetDate) {
+        if (countdownSection) countdownSection.classList.add('hidden');
+        return;
+      }
       const now = new Date().getTime();
       const diff = activeCountdownTargetDate.getTime() - now;
 
-      if (diff > 0) {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-        const dElem = document.getElementById('days');
-        const hElem = document.getElementById('hours');
-        const mElem = document.getElementById('minutes');
-        const sElem = document.getElementById('seconds');
-
-        if (dElem) dElem.innerText = String(d).padStart(2, '0');
-        if (hElem) hElem.innerText = String(h).padStart(2, '0');
-        if (mElem) mElem.innerText = String(m).padStart(2, '0');
-        if (sElem) sElem.innerText = String(s).padStart(2, '0');
+      if (diff <= 0) {
+        // Target date has just passed: completely hide countdown
+        if (countdownSection) countdownSection.classList.add('hidden');
+        activeCountdownTargetDate = null;
+        return;
       }
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const dElem = document.getElementById('days');
+      const hElem = document.getElementById('hours');
+      const mElem = document.getElementById('minutes');
+      const sElem = document.getElementById('seconds');
+
+      if (dElem) dElem.innerText = String(d).padStart(2, '0');
+      if (hElem) hElem.innerText = String(h).padStart(2, '0');
+      if (mElem) mElem.innerText = String(m).padStart(2, '0');
+      if (sElem) sElem.innerText = String(s).padStart(2, '0');
     }
     setInterval(updateCountdown, 1000);
     updateCountdown();
