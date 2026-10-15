@@ -1288,14 +1288,19 @@
       // 2. Fetch authoritative live data from Serverless Cloud API (/api/events)
       async function syncEventsFromCloud() {
         try {
-          const res = await fetch('/api/events', { cache: 'no-store' });
+          const res = await fetch(`/api/events?_nocache=${Date.now()}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }
+          });
           if (res.ok) {
-            const isFromDatabase = res.headers.get('X-Faith-Source') === 'database';
             const data = await res.json();
             const events = Array.isArray(data) ? data : (data.events || []);
 
-            // If from database or local has no data, update everything across all devices
-            if (isFromDatabase || !localEvents || localEvents.length === 0) {
+            // If valid array received from server, update whenever content differs
+            if (Array.isArray(events)) {
               const currentJson = JSON.stringify(localEvents || []);
               const incomingJson = JSON.stringify(events);
               if (currentJson !== incomingJson || !localEvents) {
@@ -1321,8 +1326,8 @@
       // Fetch latest cloud events immediately
       await syncEventsFromCloud();
 
-      // Setup multi-device background sync (every 12 seconds) & when returning to the tab
-      setInterval(syncEventsFromCloud, 12000);
+      // Setup multi-device background sync (every 8 seconds) & when returning to the tab on mobile
+      setInterval(syncEventsFromCloud, 8000);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           syncEventsFromCloud();
