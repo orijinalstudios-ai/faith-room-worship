@@ -763,9 +763,15 @@
           </div>
           <div class="p-5 pt-0 flex items-center justify-between border-t border-surface-border/40 mt-3 pt-3">
             <span class="text-[11px] text-text-muted">${(event.photos || []).length} photos in album</span>
-            <div class="flex items-center gap-3">
-              <button type="button" class="edit-event-btn text-xs text-primary hover:text-amber-300 font-label uppercase font-bold cursor-pointer transition-colors" data-id="${event.id}">Edit</button>
-              <button type="button" class="delete-event-btn text-xs text-rose-400 hover:text-rose-300 font-label uppercase cursor-pointer transition-colors" data-id="${event.id}">Delete</button>
+            <div class="flex items-center gap-2">
+              <button type="button" class="edit-event-btn px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-primary/20 text-primary font-label text-xs uppercase font-semibold border border-surface-border hover:border-primary/40 cursor-pointer active:scale-95 transition-all min-h-[38px] flex items-center gap-1" data-id="${event.id}">
+                <span class="material-symbols-outlined text-sm">edit</span>
+                Edit
+              </button>
+              <button type="button" class="delete-event-btn px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-label text-xs uppercase font-semibold border border-rose-500/30 hover:border-rose-500/50 cursor-pointer active:scale-95 transition-all min-h-[38px] flex items-center gap-1" data-id="${event.id}">
+                <span class="material-symbols-outlined text-sm">delete</span>
+                Delete
+              </button>
             </div>
           </div>
         `;
@@ -774,35 +780,44 @@
 
       // Attach edit listeners
       container.querySelectorAll('.edit-event-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           const id = btn.dataset.id;
           const ev = currentEvents.find(e => e.id === id);
           if (ev) openEditEventModal(ev);
         });
       });
 
-      // Attach delete listeners
+      // Attach delete listeners (Optimistic instantaneous UI update)
       container.querySelectorAll('.delete-event-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           const id = btn.dataset.id;
           const target = currentEvents.find(e => e.id === id);
           const name = target ? target.title : 'this gathering';
+
           if (confirm(`Are you sure you want to delete "${name}"?`)) {
+            // 1. Mark customized so default seed never overwrites
             window.FaithStorage.markCustomized();
+
+            // 2. Immediately remove from current state & update UI (0ms latency!)
             currentEvents = currentEvents.filter(e => e.id !== id);
-            await window.FaithStorage.set('faith_events_store', currentEvents);
-
-            if (window.FaithRoomCloud) {
-              await FaithRoomCloud.deleteEvent(id);
-            }
-            try {
-              await fetch(`/api/events/${id}`, { method: 'DELETE' });
-            } catch(e) {}
-
             updateStatsUI();
             renderEventsUI();
             renderPhotoEventOptions();
             showAdminToast('Gathering deleted successfully.');
+
+            // 3. Persist to IndexedDB and LocalStorage
+            await window.FaithStorage.set('faith_events_store', currentEvents);
+
+            // 4. Background cloud & server sync
+            if (window.FaithRoomCloud) {
+              FaithRoomCloud.deleteEvent(id).catch(() => {});
+            }
+            fetch(`/api/events/${id}`, { method: 'DELETE' }).catch(() => {});
+            fetch(`/api/events?id=${id}`, { method: 'DELETE' }).catch(() => {});
           }
         });
       });
@@ -855,9 +870,9 @@
         item.className = 'group relative rounded-lg overflow-hidden border border-surface-border bg-black/40 h-28';
         item.innerHTML = `
           <img src="${photo.src}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="${photo.title}">
-          <!-- Photo Delete Button -->
-          <button class="delete-photo-btn absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10 cursor-pointer" data-event-id="${eventId}" data-photo-idx="${idx}" title="Delete this photo">
-            <span class="material-symbols-outlined text-[13px]">delete</span>
+          <!-- Photo Delete Button (Clearly visible on mobile touch screens & hover on desktop) -->
+          <button class="delete-photo-btn absolute top-2 right-2 w-8 h-8 rounded-full bg-rose-600/90 hover:bg-rose-500 active:scale-95 text-white flex items-center justify-center opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-lg z-20 cursor-pointer" data-event-id="${eventId}" data-photo-idx="${idx}" title="Delete this photo">
+            <span class="material-symbols-outlined text-sm">delete</span>
           </button>
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end pointer-events-none">
             <span class="text-[10px] font-semibold text-text-primary truncate">${photo.title}</span>
@@ -866,19 +881,16 @@
         grid.appendChild(item);
       });
 
-      // Attach delete click listeners to individual photo cards
+      // Attach delete click listeners to individual photo cards (Instant UI update)
       grid.querySelectorAll('.delete-photo-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+          e.preventDefault();
           e.stopPropagation();
           const targetEventId = btn.dataset.eventId;
           const targetPhotoIdx = parseInt(btn.dataset.photoIdx, 10);
+
           if (confirm('Are you sure you want to delete this photo from the album?')) {
             window.FaithStorage.markCustomized();
-            let apiSuccess = false;
-            try {
-              const res = await fetch(`/api/events/${targetEventId}/photos/${targetPhotoIdx}`, { method: 'DELETE' });
-              if (res.ok) apiSuccess = true;
-            } catch (err) {}
 
             const evt = currentEvents.find(ev => ev.id === targetEventId);
             if (evt && evt.photos) {
@@ -886,25 +898,34 @@
               if (evt.photos.length === 0) {
                 evt.coverImage = 'Images/hero-1.webp';
               }
+
+              // 1. Instant UI update
+              updateStatsUI();
+              renderEventsUI();
+              renderPhotoEventOptions();
+              renderCurrentAlbumPhotos(targetEventId);
+              showAdminToast('Photo removed from album.');
+
+              // 2. Persist to storage
               await window.FaithStorage.set('faith_events_store', currentEvents);
+
+              // 3. Background sync
               if (window.FaithRoomCloud) {
-                FaithRoomCloud.saveEvent(evt);
+                FaithRoomCloud.saveEvent(evt).catch(() => {});
               }
+              fetch(`/api/events/${targetEventId}/photos/${targetPhotoIdx}`, { method: 'DELETE' }).catch(() => {});
             }
-            updateStatsUI();
-            renderEventsUI();
-            renderPhotoEventOptions();
-            renderCurrentAlbumPhotos(targetEventId);
-            showAdminToast(apiSuccess ? 'Photo deleted successfully.' : 'Photo removed from album.');
           }
         });
       });
     }
 
-    // Clear entire album gallery
+    // Clear entire album gallery (Instant UI update)
     const clearAlbumPhotosBtn = document.getElementById('clearAlbumPhotosBtn');
     if (clearAlbumPhotosBtn) {
-      clearAlbumPhotosBtn.addEventListener('click', async () => {
+      clearAlbumPhotosBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const select = document.getElementById('photoEventSelect');
         const eventId = select.value;
         if (!eventId) return;
@@ -916,21 +937,23 @@
 
         if (confirm(`Are you sure you want to delete ALL photos in "${event.title}"?`)) {
           window.FaithStorage.markCustomized();
-          let apiSuccess = false;
-          try {
-            const res = await fetch(`/api/events/${eventId}/photos`, { method: 'DELETE' });
-            if (res.ok) apiSuccess = true;
-          } catch (err) {}
           event.photos = [];
-          await window.FaithStorage.set('faith_events_store', currentEvents);
-          if (window.FaithRoomCloud) {
-            FaithRoomCloud.saveEvent(event);
-          }
+
+          // 1. Instant UI update
           updateStatsUI();
           renderEventsUI();
           renderPhotoEventOptions();
           renderCurrentAlbumPhotos(eventId);
-          showAdminToast(apiSuccess ? 'All album photos cleared.' : 'Album photos cleared.');
+          showAdminToast('All album photos cleared.');
+
+          // 2. Persist to storage
+          await window.FaithStorage.set('faith_events_store', currentEvents);
+
+          // 3. Background sync
+          if (window.FaithRoomCloud) {
+            FaithRoomCloud.saveEvent(event).catch(() => {});
+          }
+          fetch(`/api/events/${eventId}/photos`, { method: 'DELETE' }).catch(() => {});
         }
       });
     }
@@ -1250,31 +1273,35 @@
       renderPhotoEventOptions();
     });
 
-    // Delete All Events Button Handler
+    // Delete All Events Button Handler (Instant UI update)
     const deleteAllEventsBtn = document.getElementById('deleteAllEventsBtn');
     if (deleteAllEventsBtn) {
-      deleteAllEventsBtn.addEventListener('click', async () => {
+      deleteAllEventsBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (currentEvents.length === 0) {
           showAdminToast('No gatherings to delete.');
           return;
         }
         if (confirm(`Are you sure you want to delete ALL (${currentEvents.length}) gatherings? This will remove all events and their photo albums.`)) {
+          // 1. Mark customized
           window.FaithStorage.markCustomized();
-          let apiSuccess = false;
-          try {
-            const res = await fetch('/api/events', { method: 'DELETE' });
-            if (res.ok) apiSuccess = true;
-          } catch(e) {}
 
+          // 2. Immediately update in-memory state & UI (0ms latency!)
           currentEvents = [];
-          await window.FaithStorage.set('faith_events_store', []);
-          if (window.FaithRoomCloud) {
-            await FaithRoomCloud.deleteAllEvents();
-          }
           updateStatsUI();
           renderEventsUI();
           renderPhotoEventOptions();
-          showAdminToast(apiSuccess ? 'All gatherings deleted.' : 'All gatherings cleared locally.');
+          showAdminToast('All gatherings deleted.');
+
+          // 3. Persist to storage
+          await window.FaithStorage.set('faith_events_store', []);
+
+          // 4. Background cloud & server sync
+          if (window.FaithRoomCloud) {
+            FaithRoomCloud.deleteAllEvents().catch(() => {});
+          }
+          fetch('/api/events', { method: 'DELETE' }).catch(() => {});
         }
       });
     }

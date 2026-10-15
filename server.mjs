@@ -12,22 +12,44 @@ const IMAGES_DIR = path.join(__dirname, 'Images');
 const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 const RESERVATIONS_FILE = path.join(DATA_DIR, 'reservations.json');
 
-// Ensure directories and files exist
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
-if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, '[]', 'utf8');
-if (!fs.existsSync(RESERVATIONS_FILE)) fs.writeFileSync(RESERVATIONS_FILE, '[]', 'utf8');
+// Ensure directories and files exist safely without crashing on read-only environments
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+} catch (e) {}
+try {
+  if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
+} catch (e) {}
+try {
+  if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, '[]', 'utf8');
+} catch (e) {}
+try {
+  if (!fs.existsSync(RESERVATIONS_FILE)) fs.writeFileSync(RESERVATIONS_FILE, '[]', 'utf8');
+} catch (e) {}
+
+let inMemoryEvents = null;
+let inMemoryReservations = null;
 
 function readJson(file) {
+  if (file === EVENTS_FILE && inMemoryEvents !== null) return inMemoryEvents;
+  if (file === RESERVATIONS_FILE && inMemoryReservations !== null) return inMemoryReservations;
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (file === EVENTS_FILE) inMemoryEvents = data;
+    if (file === RESERVATIONS_FILE) inMemoryReservations = data;
+    return data;
   } catch (err) {
     return [];
   }
 }
 
 function writeJson(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+  if (file === EVENTS_FILE) inMemoryEvents = data;
+  if (file === RESERVATIONS_FILE) inMemoryReservations = data;
+  try {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    // Read-only environment like Vercel; preserved in-memory
+  }
 }
 
 const MIME_TYPES = {
@@ -249,7 +271,11 @@ function handleApi(req, res, pathname, parsedUrl) {
         const filename = `event-${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`;
         const targetPath = path.join(IMAGES_DIR, filename);
 
-        fs.writeFileSync(targetPath, buffer);
+        try {
+          fs.writeFileSync(targetPath, buffer);
+        } catch (fsErr) {
+          photoRecord.src = payload.base64Data;
+        }
 
         // Attach photo to event
         const events = readJson(EVENTS_FILE);
