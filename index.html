@@ -260,6 +260,30 @@
       box-shadow: 0 0 8px rgba(255, 198, 101, 0.6);
     }
 
+    /* Enhanced Desktop Animations & Smooth Interactions */
+    .card-hover-lift {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .card-hover-lift:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.7), 0 0 24px rgba(229, 169, 60, 0.14);
+        border-color: rgba(229, 169, 60, 0.45) !important;
+      }
+    }
+    .btn-glow {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -4px rgba(229, 169, 60, 0.4);
+      }
+      .btn-glow:active {
+        transform: translateY(0);
+      }
+    }
+
     /* Print styling for Digital Pass */
     @media print {
       body * {
@@ -357,7 +381,7 @@
 
   <main>
     <!-- HERO SECTION: Dynamic Ken Burns Multi-Image Stage Slideshow -->
-    <section class="relative min-h-screen flex items-center justify-center pt-32 pb-24 px-6 md:px-12 overflow-hidden" id="hero">
+    <section class="relative min-h-screen flex items-center justify-center pt-36 sm:pt-40 pb-20 px-4 sm:px-8 md:px-12 overflow-hidden" id="hero">
       
       <!-- Auto-Advancing Ken Burns Slideshow Container -->
       <div class="absolute inset-0 z-0 overflow-hidden" id="heroSlideshow">
@@ -388,9 +412,9 @@
       </button>
 
       <!-- Hero Content -->
-      <div class="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center mt-8 sm:mt-12 md:mt-16 reveal-on-scroll px-2 sm:px-0">
+      <div class="relative z-10 w-[92%] sm:w-full max-w-5xl mx-auto text-center flex flex-col items-center mt-6 sm:mt-10 md:mt-14 reveal-on-scroll px-1 sm:px-0">
         <!-- Live Alert Banner (Responsive Text & Sizing) -->
-        <div class="inline-flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-surface-charcoal/90 border border-surface-border backdrop-blur-md mb-6 sm:mb-8 shadow-xl max-w-[95%] sm:max-w-none text-left sm:text-center">
+        <div class="inline-flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-surface-charcoal/90 border border-surface-border backdrop-blur-md mb-5 sm:mb-8 shadow-xl max-w-full sm:max-w-none text-left sm:text-center">
           <span class="relative flex h-2 w-2 shrink-0">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -401,25 +425,25 @@
         </div>
 
         <!-- Headline (Responsive & Breathable Line-Height) -->
-        <h1 class="font-display-xl text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-text-primary tracking-tight leading-[1.15] sm:leading-none mb-4 sm:mb-6 drop-shadow-2xl">
+        <h1 class="font-display-xl text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold text-text-primary tracking-tight leading-[1.18] sm:leading-none mb-3 sm:mb-6 drop-shadow-2xl">
           IN SPIRIT &amp; <br class="hidden sm:inline">
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary-fixed">IN TRUTH</span>
         </h1>
 
         <!-- Subtitle (Relaxed Mobile Line-Height) -->
-        <p class="font-body-lg text-sm sm:text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto font-light leading-relaxed mb-8 sm:mb-10 px-2 sm:px-0">
+        <p class="font-body-lg text-xs sm:text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto font-light leading-relaxed mb-6 sm:mb-10 px-1 sm:px-0">
           An intimate sanctuary of soul-stirring worship, igniting faith in the heart of the room and across the nations. Pure devotion, unfiltered worship, sacred sound.
         </p>
 
         <!-- CTA Buttons (Responsive Tap Targets, Full-Width on Mobile) -->
-        <div class="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto px-4 sm:px-0">
-          <a class="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-primary-container hover:bg-primary text-[#432c00] font-label-lg text-xs sm:text-sm uppercase rounded-full font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary-container/25 hover:shadow-primary/40 text-center active:scale-95 flex items-center justify-center gap-2" href="#reservation">
+        <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto px-2 sm:px-0">
+          <a class="btn-glow w-full sm:w-auto px-7 sm:px-8 py-3 sm:py-3.5 min-h-[44px] bg-primary-container hover:bg-primary text-[#432c00] font-label-lg text-xs sm:text-sm uppercase rounded-full font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary-container/25 hover:shadow-primary/40 text-center active:scale-95 flex items-center justify-center gap-2" href="#reservation">
             <span class="material-symbols-outlined text-[18px]" data-icon="confirmation_number">confirmation_number</span>
-            Request Seat Invitation
+            Reserve Seat
           </a>
-          <button id="heroStreamBtn" class="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-surface-charcoal/60 hover:bg-surface-elevated border border-surface-border hover:border-primary text-text-primary font-label-lg text-xs sm:text-sm uppercase rounded-full font-semibold tracking-wider transition-all duration-300 backdrop-blur-sm text-center flex items-center justify-center gap-2 group cursor-pointer" type="button">
+          <button id="heroStreamBtn" class="btn-glow w-full sm:w-auto px-7 sm:px-8 py-3 sm:py-3.5 min-h-[44px] bg-surface-charcoal/60 hover:bg-surface-elevated border border-surface-border hover:border-primary text-text-primary font-label-lg text-xs sm:text-sm uppercase rounded-full font-semibold tracking-wider transition-all duration-300 backdrop-blur-sm text-center flex items-center justify-center gap-2 group cursor-pointer" type="button">
             <span class="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform" data-icon="play_arrow">play_arrow</span>
-            Stream Latest Session
+            Watch Stream
           </button>
         </div>
 
@@ -493,13 +517,13 @@
 
     <!-- THE VISION & CREED SECTION -->
     <section class="py-space-3xl px-6 md:px-12 max-w-7xl mx-auto reveal-on-scroll" id="vision">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         <div class="lg:col-span-5">
-          <span class="font-label-md text-label-md uppercase tracking-[0.2em] text-primary font-semibold block mb-3">Our Core Calling</span>
-          <h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight leading-tight mb-6">
+          <span class="font-label-md text-label-md uppercase tracking-[0.2em] text-primary font-semibold block mb-2 sm:mb-3">Our Core Calling</span>
+          <h2 class="font-headline-lg text-2xl sm:text-3xl md:text-4xl text-text-primary font-bold tracking-tight leading-tight mb-4 sm:mb-6">
             A Room Dedicated to Undivided Adoration
           </h2>
-          <div class="space-y-4 text-on-surface-variant font-body-md text-body-md font-light leading-relaxed">
+          <div class="space-y-3 sm:space-y-4 text-on-surface-variant font-body-md text-xs sm:text-sm md:text-base font-light leading-relaxed">
             <p>
               Faith Room Worship is born from a desire to return to the heart of Worship—stripping away commercialized spectacle to craft a sanctuary where God's presence dwells unhindered.
             </p>
@@ -507,27 +531,25 @@
               Whether joining us inside the physical room or tuning into our high-fidelity digital broadcast across continents, every chord, verse, and silent pause is designed to ignite unshakeable faith.
             </p>
           </div>
-          <div class="mt-8 pt-6 border-t border-surface-border flex items-center gap-6">
-            <div>
-              <span class="block font-headline-sm text-headline-sm text-primary font-bold">100%</span>
-              <span class="font-label-sm text-label-sm uppercase text-text-muted">Presence Focused</span>
+          <div class="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-surface-border grid grid-cols-3 gap-2 sm:gap-6 divide-x divide-surface-border/60 text-center sm:text-left">
+            <div class="pr-2 sm:pr-4">
+              <span class="block font-headline text-lg sm:text-2xl text-primary font-bold">100%</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase text-text-muted mt-0.5 block leading-tight">Presence Focused</span>
             </div>
-            <div class="w-px h-10 bg-surface-border"></div>
-            <div>
-              <span class="block font-headline-sm text-headline-sm text-primary font-bold">30</span>
-              <span class="font-label-sm text-label-sm uppercase text-text-muted">Strict Onsite Seats</span>
+            <div class="px-2 sm:px-4">
+              <span class="block font-headline text-lg sm:text-2xl text-primary font-bold">30</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase text-text-muted mt-0.5 block leading-tight">Strict Seats</span>
             </div>
-            <div class="w-px h-10 bg-surface-border"></div>
-            <div>
-              <span class="block font-headline-sm text-headline-sm text-primary font-bold">Unlimited</span>
-              <span class="font-label-sm text-label-sm uppercase text-text-muted">Global Online Stream</span>
+            <div class="pl-2 sm:pl-4">
+              <span class="block font-headline text-lg sm:text-2xl text-primary font-bold">Unlimited</span>
+              <span class="font-label-sm text-[10px] sm:text-xs uppercase text-text-muted mt-0.5 block leading-tight">Global Stream</span>
             </div>
           </div>
         </div>
         <div class="lg:col-span-7">
-          <div class="relative bg-surface-charcoal border border-surface-border p-8 md:p-12 rounded-2xl">
-            <span class="material-symbols-outlined text-6xl text-primary/30 absolute top-6 right-8 select-none" data-icon="format_quote">format_quote</span>
-            <p class="font-headline-sm text-headline-sm text-text-primary italic font-normal leading-relaxed mb-6">
+          <div class="card-hover-lift relative bg-surface-charcoal border border-surface-border p-6 sm:p-8 md:p-12 rounded-2xl">
+            <span class="material-symbols-outlined text-4xl sm:text-6xl text-primary/20 absolute top-4 sm:top-6 right-4 sm:right-8 select-none" data-icon="format_quote">format_quote</span>
+            <p class="font-headline-sm text-base sm:text-lg md:text-xl text-text-primary italic font-normal leading-relaxed mb-6">
               "God is Spirit, and those who worship Him must worship in spirit and truth. In the Faith Room, there are no spectators, only worshippers answering the sound from Heaven."
             </p>
             <div class="flex items-center gap-4">
@@ -549,15 +571,15 @@
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-8">
         <div>
           <span class="font-label-md text-label-md uppercase tracking-[0.2em] text-primary font-semibold block mb-2">Sacred Calendar</span>
-          <h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight leading-tight">Upcoming Gatherings</h2>
+          <h2 class="font-headline-lg text-2xl sm:text-3xl md:text-headline-lg text-text-primary font-bold tracking-tight leading-tight">Upcoming Gatherings</h2>
         </div>
-        <p class="text-text-muted font-body-sm text-body-sm max-w-md mt-4 md:mt-0 leading-relaxed">
+        <p class="text-text-muted font-body-sm text-xs sm:text-sm max-w-md mt-3 md:mt-0 leading-relaxed">
           Physical entry is capped at strictly 30 seats per room. Online global streaming is open and unlimited to worshippers worldwide.
         </p>
       </div>
 
       <!-- Category Filter Pills -->
-      <div class="flex flex-wrap items-center gap-3 mb-10">
+      <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 mb-8 sm:mb-10">
         <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-label-sm uppercase tracking-wider font-semibold bg-primary text-[#432c00] transition-all shadow-md shadow-primary/20 cursor-pointer" data-filter="all">All Encounters</button>
         <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-label-sm uppercase tracking-wider font-semibold bg-surface-charcoal border border-surface-border text-text-muted hover:text-text-primary hover:border-primary/50 transition-all cursor-pointer" data-filter="live">Live Sessions</button>
         <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-label-sm uppercase tracking-wider font-semibold bg-surface-charcoal border border-surface-border text-text-muted hover:text-text-primary hover:border-primary/50 transition-all cursor-pointer" data-filter="recording">Album Recording</button>
@@ -566,7 +588,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="gatheringsGrid">
         <!-- Event Card 1 -->
-        <div class="gathering-card group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" data-category="live" data-event="The Upper Room Encounter Vol. 2">
+        <div class="gathering-card card-hover-lift group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col justify-between" data-category="live" data-event="The Upper Room Encounter Vol. 2">
           <div class="relative h-56 overflow-hidden">
             <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="Images/thumb-1.webp" alt="The Upper Room Encounter Vol. 2">
             <div class="absolute inset-0 bg-gradient-to-t from-surface-charcoal via-transparent to-black/40"></div>
@@ -595,14 +617,14 @@
                 </div>
               </div>
             </div>
-            <button class="apply-seat-btn w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer" data-event-title="The Upper Room Encounter Vol. 2">
-              Apply for Seat / Stream Link
+            <button class="apply-seat-btn btn-glow w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer" data-event-title="The Upper Room Encounter Vol. 2">
+              Reserve Seat
             </button>
           </div>
         </div>
 
         <!-- Event Card 2 -->
-        <div class="gathering-card group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" data-category="recording" data-event="Outpouring & Overflow Session">
+        <div class="gathering-card card-hover-lift group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col justify-between" data-category="recording" data-event="Outpouring & Overflow Session">
           <div class="relative h-56 overflow-hidden">
             <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="Images/thumb-2.webp" alt="Outpouring & Overflow Session">
             <div class="absolute inset-0 bg-gradient-to-t from-surface-charcoal via-transparent to-black/40"></div>
@@ -631,14 +653,14 @@
                 </div>
               </div>
             </div>
-            <button class="apply-seat-btn w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer" data-event-title="Outpouring & Overflow Session">
-              Apply for Seat / Stream Link
+            <button class="apply-seat-btn btn-glow w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer" data-event-title="Outpouring & Overflow Session">
+              Reserve Seat
             </button>
           </div>
         </div>
 
         <!-- Event Card 3 -->
-        <div class="gathering-card group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" data-category="acoustic" data-event="Acoustic Faith Night">
+        <div class="gathering-card card-hover-lift group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col justify-between" data-category="acoustic" data-event="Acoustic Faith Night">
           <div class="relative h-56 overflow-hidden">
             <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="Images/thumb-3.webp" alt="Acoustic Faith Night">
             <div class="absolute inset-0 bg-gradient-to-t from-surface-charcoal via-transparent to-black/40"></div>
@@ -667,8 +689,8 @@
                 </div>
               </div>
             </div>
-            <button class="apply-seat-btn w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer" data-event-title="Acoustic Faith Night">
-              Apply for Seat / Stream Link
+            <button class="apply-seat-btn btn-glow w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer" data-event-title="Acoustic Faith Night">
+              Reserve Seat
             </button>
           </div>
         </div>
@@ -677,10 +699,10 @@
 
     <!-- PHOTO & MOMENT GALLERY SECTION: Event-Based Multi-Image Albums -->
     <section class="py-space-3xl px-6 md:px-12 max-w-7xl mx-auto reveal-on-scroll" id="gallery">
-      <div class="text-center max-w-2xl mx-auto mb-16">
+      <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
         <span class="font-label-md text-label-md uppercase tracking-[0.2em] text-primary font-semibold block mb-2">Sacred Archive</span>
-        <h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight leading-tight">Moments of Encounter</h2>
-        <p class="text-text-muted font-body-sm text-body-sm mt-3 leading-relaxed">
+        <h2 class="font-headline-lg text-2xl sm:text-3xl md:text-headline-lg text-text-primary font-bold tracking-tight leading-tight">Moments of Encounter</h2>
+        <p class="text-text-muted font-body-sm text-xs sm:text-sm mt-3 leading-relaxed">
           Each event holds a collection of unrehearsed devotion and palpable moves of the Spirit. <span class="text-primary font-medium">Click any event album to browse all photos from that gathering.</span>
         </p>
       </div>
@@ -693,86 +715,86 @@
 
     <!-- MINISTRY TEAM & MINISTERS SPOTLIGHT -->
     <section class="py-space-3xl px-6 md:px-12 max-w-7xl mx-auto bg-surface-container-lowest border-t border-b border-surface-border/60 reveal-on-scroll" id="ministers">
-      <div class="flex flex-col md:flex-row md:items-end justify-between mb-16">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16">
         <div>
           <span class="font-label-md text-label-md uppercase tracking-[0.2em] text-primary font-semibold block mb-2">The Sound Stewards</span>
-          <h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight leading-tight">Faith Room Ministers</h2>
+          <h2 class="font-headline-lg text-2xl sm:text-3xl md:text-headline-lg text-text-primary font-bold tracking-tight leading-tight">Faith Room Ministers</h2>
         </div>
-        <p class="text-text-muted font-body-sm text-body-sm max-w-md mt-4 md:mt-0 leading-relaxed">
+        <p class="text-text-muted font-body-sm text-xs sm:text-sm max-w-md mt-3 md:mt-0 leading-relaxed">
           Dedicated vessels serving at the altar of worship—yielding craft, spirit, and skill for His manifest glory.
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <!-- Ezra -->
-        <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
+        <div class="card-hover-lift p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
             <img alt="Ezra, Visioner &amp; Lead Psalmist" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="Images/ezra.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Visioner &amp; Lead Psalmist</span>
             <h3 class="font-headline-md text-2xl text-text-primary font-bold mt-1 leading-snug">Ezra</h3>
-            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Carrying an apostolic mandate for deep communion, leading worshippers into the throne room encounter.</p>
+            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Pioneering the altar of spontaneous worship, ministering directly before the Lord in intimate psalms and prayer.</p>
           </div>
         </div>
 
         <!-- Tammy -->
-        <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
+        <div class="card-hover-lift p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Portrait of Tammy by keyboards" src="Images/tammy.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Tammy, Music Director &amp; Keyboards" src="Images/tammy.webp">
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Music Director &amp; Keyboards</span>
             <h3 class="font-headline-md text-2xl text-text-primary font-bold mt-1 leading-snug">Tammy</h3>
-            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Architecting the harmonic beds, spiritual flows, and tonal arrangements that form the Faith Room sound tapestry.</p>
+            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Directing the harmonic atmosphere, spiritual key transitions, and melodic layers that usher in the manifest presence.</p>
           </div>
         </div>
 
         <!-- Samuel Thompson -->
-        <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
+        <div class="card-hover-lift p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Samuel Thompson playing acoustic guitar" src="Images/samuel-thompson.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Samuel Thompson, Acoustic Psalmist &amp; Strings" src="Images/samuel-thompson.webp">
           </div>
           <div>
-            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
+            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Acoustic Psalmist &amp; Strings</span>
             <h3 class="font-headline-md text-2xl text-text-primary font-bold mt-1 leading-snug">Samuel Thompson</h3>
-            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Leading spontaneous acoustic outpourings and heartfelt songs of deliverance.</p>
+            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Unlocking acoustic devotion through delicate fingerpicking, soulful strings, and heartfelt ministry.</p>
           </div>
         </div>
 
         <!-- Future Johnson -->
-        <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
+        <div class="card-hover-lift p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Future Johnson vocal ministry" src="Images/future-johnson.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Future Johnson, Prophetic Vocalist &amp; Intercessor" src="Images/future-johnson.webp">
           </div>
           <div>
-            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
+            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Prophetic Vocalist &amp; Intercessor</span>
             <h3 class="font-headline-md text-2xl text-text-primary font-bold mt-1 leading-snug">Future Johnson</h3>
-            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Releasing prophetic declarations, vocal depth, and passionate intercessory worship.</p>
+            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Releasing commanding vocal depth, fiery intercession, and passionate spiritual declarations.</p>
           </div>
         </div>
 
         <!-- Believe -->
-        <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
+        <div class="card-hover-lift p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Believe strings and vocal harmonies" src="Images/believe.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Believe, Psalmist &amp; Vocal Harmonies" src="Images/believe.webp">
           </div>
           <div>
-            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
+            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Psalmist &amp; Vocal Harmonies</span>
             <h3 class="font-headline-md text-2xl text-text-primary font-bold mt-1 leading-snug">Believe</h3>
-            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Weaving stirring melodic textures, angelic harmonies, and atmospheric chords.</p>
+            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Weaving soaring angelic vocal harmonies and delicate melodic textures that elevate the corporate sound.</p>
           </div>
         </div>
 
         <!-- Soye West -->
-        <div class="p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
+        <div class="card-hover-lift p-8 bg-surface-charcoal border border-surface-border rounded-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 transition-colors">
           <div class="w-32 h-32 rounded-xl overflow-hidden border border-surface-border shrink-0 bg-surface-elevated">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Soye West drums and rhythm" src="Images/soye-west.webp">
+            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" alt="Soye West, Percussionist &amp; Rhythm Steward" src="Images/soye-west.webp">
           </div>
           <div>
-            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">MINISTER</span>
+            <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">Percussionist &amp; Rhythm Steward</span>
             <h3 class="font-headline-md text-2xl text-text-primary font-bold mt-1 leading-snug">Soye West</h3>
-            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Driving the heartbeat, dynamic cadences, and rhythmic momentum of every encounter.</p>
+            <p class="text-on-surface-variant font-body-sm text-body-sm mt-2 font-light leading-relaxed">Anchoring the rhythmic cadence, dynamic pulses, and sacred heartbeat of every live encounter.</p>
           </div>
         </div>
       </div>
@@ -780,16 +802,16 @@
 
     <!-- STRICTLY BY RESERVATION — RSVP & APPLICATION SECTION -->
     <section class="py-space-3xl px-6 md:px-12 max-w-4xl mx-auto reveal-on-scroll" id="reservation">
-      <div class="bg-surface-charcoal border border-surface-border rounded-2xl p-8 md:p-14 shadow-2xl relative">
+      <div class="bg-surface-charcoal border border-surface-border rounded-2xl p-6 sm:p-10 md:p-14 shadow-2xl relative">
         <!-- Glow accent -->
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-72 h-72 bg-amber-glow blur-3xl pointer-events-none"></div>
 
-        <div class="text-center max-w-xl mx-auto mb-10">
+        <div class="text-center max-w-xl mx-auto mb-8 sm:mb-10">
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold border border-surface-border mb-3">
             <span class="material-symbols-outlined text-sm" data-icon="lock">lock</span> Verified Admission Policy
           </span>
-          <h2 class="font-headline-lg text-headline-lg text-text-primary font-bold leading-tight">Request Seat Reservation</h2>
-          <p class="text-on-surface-variant font-body-sm text-body-sm mt-3 font-light leading-relaxed">
+          <h2 class="font-headline-lg text-xl sm:text-2xl md:text-3xl text-text-primary font-bold leading-tight">Request Seat Reservation</h2>
+          <p class="text-on-surface-variant font-body-sm text-xs sm:text-sm mt-2.5 font-light leading-relaxed">
             Physical Sanctuary seats are strictly restricted to 30 confirmed reservations to maintain deep communion. Global Online Streaming is unlimited and instant.
           </p>
         </div>
@@ -847,9 +869,9 @@
           </div>
 
           <!-- Submit Button -->
-          <button id="submitReservationBtn" class="w-full py-4 bg-primary-container hover:bg-primary text-[#432c00] font-label-lg text-label-lg uppercase rounded-full font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary-container/20 hover:shadow-primary/40 active:scale-95 flex items-center justify-center gap-2 cursor-pointer" type="submit">
+          <button id="submitReservationBtn" class="btn-glow w-full py-3.5 sm:py-4 bg-primary-container hover:bg-primary text-[#432c00] font-label-lg text-sm sm:text-base uppercase rounded-full font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary-container/20 hover:shadow-primary/40 active:scale-95 flex items-center justify-center gap-2 cursor-pointer" type="submit">
             <span class="material-symbols-outlined text-[18px]" id="submitBtnIcon" data-icon="send">send</span>
-            <span id="submitBtnText">Submit Seat Reservation Request</span>
+            <span id="submitBtnText">Confirm Reservation</span>
           </button>
         </form>
       </div>
@@ -916,7 +938,8 @@
   </footer>
 
   <!-- PERSISTENT GLOBAL WORSHIP STREAM BAR (Todd Dulaney Faith Worship Stream) -->
-  <audio id="faithRoomAudio" preload="metadata" src="https://archive.org/download/todd-dulaney-your-great-name-live/Todd%20Dulaney%20-%20Your%20Great%20Name%20%28Live%29.mp3"></audio>
+  <div id="ytPlayerContainer" class="fixed -left-[9999px] -top-[9999px] w-1 h-1 pointer-events-none opacity-0"></div>
+  <audio id="faithRoomAudio" preload="metadata" src="https://archive.org/download/todddulaneyvictorybelongstojesuswww.impactradio.ng/ToddDulaney-Victory-Belongs-To-Jesus-%5Bwww.ImpactRadio.Ng%5D.mp3"></audio>
 
   <div class="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-surface-charcoal/90 border-t border-surface-border px-4 sm:px-6 py-2.5 sm:py-3">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4">
@@ -1255,15 +1278,17 @@
         renderGatheringsGrid(localEvents);
         renderEventAlbums(localEvents);
         renderTargetGatheringOptions(localEvents);
+        syncCountdownWithEvents(localEvents);
       }
 
       // 2. Real-time Cloud Sync (Firestore) - Updates live across all devices
       if (window.FaithRoomCloud) {
         window.FaithRoomCloud.listenEvents((cloudEvents) => {
-          if (Array.isArray(cloudEvents) && cloudEvents.length > 0) {
+          if (Array.isArray(cloudEvents)) {
             renderGatheringsGrid(cloudEvents);
             renderEventAlbums(cloudEvents);
             renderTargetGatheringOptions(cloudEvents);
+            syncCountdownWithEvents(cloudEvents);
           }
         }, localEvents || []);
       }
@@ -1277,6 +1302,7 @@
             renderGatheringsGrid(events);
             renderEventAlbums(events);
             renderTargetGatheringOptions(events);
+            syncCountdownWithEvents(events);
             localStorage.setItem('faith_events_store', JSON.stringify(events));
             return;
           }
@@ -1292,6 +1318,7 @@
             renderGatheringsGrid(events);
             renderEventAlbums(events);
             renderTargetGatheringOptions(events);
+            syncCountdownWithEvents(events);
             localStorage.setItem('faith_events_store', JSON.stringify(events));
             return;
           }
@@ -1367,7 +1394,66 @@
       renderGatheringsGrid(defaultEvents);
       renderEventAlbums(defaultEvents);
       renderTargetGatheringOptions(defaultEvents);
+      syncCountdownWithEvents(defaultEvents);
       localStorage.setItem('faith_events_store', JSON.stringify(defaultEvents));
+    }
+
+    /* Synchronizes the Live Countdown Bar with events list. If corresponding event is deleted, updates to next or hides cleanly */
+    function syncCountdownWithEvents(events) {
+      const countdownSection = document.getElementById('countdown');
+      const countdownTitle = document.getElementById('countdownEventTitle');
+      const countdownSubtitle = document.getElementById('countdownDateSubtitle');
+      if (!countdownSection) return;
+
+      if (!events || !Array.isArray(events) || events.length === 0) {
+        // If event is deleted and no gatherings remain, hide the countdown section cleanly
+        countdownSection.classList.add('hidden');
+        return;
+      }
+
+      // Find the earliest upcoming event or first active gathering
+      const now = new Date();
+      const activeEvent = events.find(e => {
+        if (!e.date) return false;
+        const timeStr = e.time || '18:00';
+        const d = new Date(`${e.date}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
+        return d.getTime() > now.getTime();
+      }) || events[0];
+
+      if (!activeEvent) {
+        countdownSection.classList.add('hidden');
+        return;
+      }
+
+      countdownSection.classList.remove('hidden');
+
+      if (countdownTitle) {
+        countdownTitle.textContent = activeEvent.title;
+      }
+
+      if (countdownSubtitle) {
+        const dText = activeEvent.dateText || activeEvent.date || 'Upcoming Gathering';
+        const tText = activeEvent.timeText || activeEvent.time || '6:00 PM';
+        const loc = activeEvent.location || 'Secret Sanctuary, Lagos & Global Broadcast';
+        countdownSubtitle.innerHTML = `${dText} • ${tText} • ${loc}`;
+      }
+
+      // Update target date for countdown timer
+      let target = null;
+      if (activeEvent.date) {
+        const timeStr = activeEvent.time || '18:00';
+        const parsed = new Date(`${activeEvent.date}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
+        if (!isNaN(parsed.getTime())) {
+          target = parsed;
+        }
+      }
+      if (!target || target.getTime() <= now.getTime()) {
+        target = getNextGatheringDate();
+      }
+      activeCountdownTargetDate = target;
+      if (typeof updateCountdown === 'function') {
+        updateCountdown();
+      }
     }
 
     /* Renders Upcoming Gatherings Grid dynamically so deletions & additions reflect immediately */
@@ -1394,7 +1480,7 @@
         const timeBadge = ev.timeText || '6:00 PM';
         const cover = ev.coverImage || 'Images/thumb-1.webp';
 
-        card.className = 'gathering-card group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between';
+        card.className = 'gathering-card card-hover-lift group bg-surface-charcoal border border-surface-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col justify-between';
         card.dataset.category = cat;
         card.dataset.event = ev.title;
 
@@ -1427,8 +1513,8 @@
                 </div>
               </div>
             </div>
-            <button class="apply-seat-btn w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer min-h-[44px]" data-event-title="${ev.title}">
-              Apply for Seat / Stream Link
+            <button class="apply-seat-btn btn-glow w-full py-3 bg-surface-elevated hover:bg-primary-container text-text-primary hover:text-[#432c00] border border-surface-border hover:border-primary font-label-sm text-label-sm uppercase font-semibold text-center rounded-xl transition-all duration-200 cursor-pointer min-h-[44px]" data-event-title="${ev.title}">
+              Reserve Seat
             </button>
           </div>
         `;
@@ -1713,7 +1799,7 @@
 
     const worshipPad = new WorshipPadEngine();
 
-    // Stream Controls & Visualizer
+    // Stream Controls & Visualizer (Todd Dulaney - Your Great Name)
     const faithAudio = document.getElementById('faithRoomAudio');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
@@ -1727,6 +1813,9 @@
 
     let isAudioPlaying = false;
     let fallbackPadActive = false;
+    let isMuted = false;
+    let ytPlayer = null;
+    let ytPlayerReady = false;
 
     function formatTime(secs) {
       if (!secs || isNaN(secs)) return '00:00';
@@ -1735,9 +1824,73 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
+    /* Initialize YouTube Audio Player for genuine Todd Dulaney - Your Great Name */
+    window.onYouTubeIframeAPIReady = function() {
+      try {
+        ytPlayer = new YT.Player('ytPlayerContainer', {
+          height: '100',
+          width: '100',
+          videoId: 'dSr2BhSBtm0',
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            modestbranding: 1,
+            rel: 0,
+            playsinline: 1
+          },
+          events: {
+            onReady: function() {
+              ytPlayerReady = true;
+              if (durationTimeElem) durationTimeElem.textContent = '05:40';
+            },
+            onStateChange: function(event) {
+              if (event.data === YT.PlayerState.PLAYING) {
+                isAudioPlaying = true;
+                if (playIcon) playIcon.textContent = 'pause';
+                if (equalizerVisualizer) {
+                  equalizerVisualizer.classList.remove('hidden');
+                  equalizerVisualizer.classList.add('flex');
+                }
+              } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+                isAudioPlaying = false;
+                if (playIcon) playIcon.textContent = 'play_arrow';
+                if (equalizerVisualizer) {
+                  equalizerVisualizer.classList.add('hidden');
+                  equalizerVisualizer.classList.remove('flex');
+                }
+                if (event.data === YT.PlayerState.ENDED) {
+                  if (progressTrack) progressTrack.style.width = '0%';
+                  if (currentTimeElem) currentTimeElem.textContent = '00:00';
+                }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.warn('YouTube Audio Player initialization notice:', err);
+      }
+    };
+
+    /* Continuous scrubber and track position updater */
+    setInterval(() => {
+      if (ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+        if (ytPlayer.getPlayerState() === 1) { // 1 = YT.PlayerState.PLAYING
+          const cur = ytPlayer.getCurrentTime() || 0;
+          const dur = ytPlayer.getDuration() || 340;
+          if (currentTimeElem) currentTimeElem.textContent = formatTime(cur);
+          if (durationTimeElem && dur > 0) durationTimeElem.textContent = formatTime(dur);
+          if (progressTrack && dur > 0) {
+            progressTrack.style.width = `${Math.min(100, (cur / dur) * 100)}%`;
+          }
+        }
+      }
+    }, 250);
+
     if (faithAudio) {
       faithAudio.addEventListener('timeupdate', () => {
-        if (!isNaN(faithAudio.currentTime)) {
+        if (!ytPlayerReady && !isNaN(faithAudio.currentTime)) {
           currentTimeElem.textContent = formatTime(faithAudio.currentTime);
           if (faithAudio.duration && !isNaN(faithAudio.duration)) {
             const pct = (faithAudio.currentTime / faithAudio.duration) * 100;
@@ -1747,32 +1900,38 @@
       });
 
       faithAudio.addEventListener('loadedmetadata', () => {
-        if (!isNaN(faithAudio.duration)) {
+        if (!ytPlayerReady && !isNaN(faithAudio.duration)) {
           durationTimeElem.textContent = formatTime(faithAudio.duration);
         }
       });
 
       faithAudio.addEventListener('ended', () => {
-        isAudioPlaying = false;
-        playIcon.textContent = 'play_arrow';
-        if (equalizerVisualizer) {
-          equalizerVisualizer.classList.add('hidden');
-          equalizerVisualizer.classList.remove('flex');
-        }
-        progressTrack.style.width = '0%';
-        currentTimeElem.textContent = '00:00';
-      });
-
-      faithAudio.addEventListener('error', () => {
-        console.warn('Network audio stream not available, activating sacred worship pad atmosphere fallback.');
-        if (isAudioPlaying) {
-          worshipPad.start();
-          fallbackPadActive = true;
+        if (!ytPlayerReady) {
+          isAudioPlaying = false;
+          playIcon.textContent = 'play_arrow';
+          if (equalizerVisualizer) {
+            equalizerVisualizer.classList.add('hidden');
+            equalizerVisualizer.classList.remove('flex');
+          }
+          progressTrack.style.width = '0%';
+          currentTimeElem.textContent = '00:00';
         }
       });
     }
 
     async function togglePlayback() {
+      // 1. Prefer authentic YouTube audio playback
+      if (ytPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+        if (isAudioPlaying) {
+          ytPlayer.pauseVideo();
+        } else {
+          ytPlayer.playVideo();
+          showToast('Now Playing: Todd Dulaney - Your Great Name (Official Worship)', 'music_note');
+        }
+        return;
+      }
+
+      // 2. Fallback to direct audio file or sacred tone pad
       isAudioPlaying = !isAudioPlaying;
 
       if (isAudioPlaying) {
@@ -1787,7 +1946,6 @@
           try {
             await faithAudio.play();
           } catch (err) {
-            console.warn('Direct MP3 playback restricted by browser policy; activating sacred tone pad fallback.', err);
             worshipPad.start();
             fallbackPadActive = true;
           }
@@ -1818,7 +1976,13 @@
         const rect = progressTrackContainer.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-        if (faithAudio && faithAudio.duration && !isNaN(faithAudio.duration)) {
+
+        if (ytPlayerReady && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+          const dur = ytPlayer.getDuration() || 340;
+          ytPlayer.seekTo(ratio * dur, true);
+          if (progressTrack) progressTrack.style.width = `${ratio * 100}%`;
+          if (currentTimeElem) currentTimeElem.textContent = formatTime(ratio * dur);
+        } else if (faithAudio && faithAudio.duration && !isNaN(faithAudio.duration)) {
           faithAudio.currentTime = ratio * faithAudio.duration;
           progressTrack.style.width = `${ratio * 100}%`;
           currentTimeElem.textContent = formatTime(faithAudio.currentTime);
@@ -1828,14 +1992,22 @@
 
     if (volumeBtn) {
       volumeBtn.addEventListener('click', () => {
-        if (!faithAudio) return;
-        faithAudio.muted = !faithAudio.muted;
-        if (faithAudio.muted) {
+        isMuted = !isMuted;
+        if (isMuted) {
           volumeIcon.textContent = 'volume_off';
+          if (ytPlayerReady && ytPlayer && typeof ytPlayer.mute === 'function') ytPlayer.mute();
+          if (faithAudio) faithAudio.muted = true;
           worshipPad.setVolume(0);
         } else {
           volumeIcon.textContent = 'volume_up';
-          faithAudio.volume = 0.8;
+          if (ytPlayerReady && ytPlayer && typeof ytPlayer.unMute === 'function') {
+            ytPlayer.unMute();
+            ytPlayer.setVolume(85);
+          }
+          if (faithAudio) {
+            faithAudio.muted = false;
+            faithAudio.volume = 0.8;
+          }
           worshipPad.setVolume(0.28);
         }
       });
@@ -1843,7 +2015,7 @@
 
     /* ==========================================================
        4. DYNAMIC LIVE COUNTDOWN TIMER
-       Calculates next gathering accurately
+       Calculates next gathering accurately and syncs dynamically
        ========================================================== */
     function getNextGatheringDate() {
       const now = new Date();
@@ -1859,16 +2031,17 @@
       return nextDate;
     }
 
-    const nextTargetDate = getNextGatheringDate();
+    let activeCountdownTargetDate = getNextGatheringDate();
     const countdownDateSubtitle = document.getElementById('countdownDateSubtitle');
     if (countdownDateSubtitle) {
       const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
-      countdownDateSubtitle.innerHTML = `${nextTargetDate.toLocaleDateString(undefined, options)} • 6:00 PM GMT+1 • Secret Sanctuary, Lagos &amp; Global Broadcast`;
+      countdownDateSubtitle.innerHTML = `${activeCountdownTargetDate.toLocaleDateString(undefined, options)} • 6:00 PM GMT+1 • Secret Sanctuary, Lagos &amp; Global Broadcast`;
     }
 
     function updateCountdown() {
+      if (!activeCountdownTargetDate) return;
       const now = new Date().getTime();
-      const diff = nextTargetDate.getTime() - now;
+      const diff = activeCountdownTargetDate.getTime() - now;
 
       if (diff > 0) {
         const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -1876,10 +2049,15 @@
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-        document.getElementById('days').innerText = String(d).padStart(2, '0');
-        document.getElementById('hours').innerText = String(h).padStart(2, '0');
-        document.getElementById('minutes').innerText = String(m).padStart(2, '0');
-        document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+        const dElem = document.getElementById('days');
+        const hElem = document.getElementById('hours');
+        const mElem = document.getElementById('minutes');
+        const sElem = document.getElementById('seconds');
+
+        if (dElem) dElem.innerText = String(d).padStart(2, '0');
+        if (hElem) hElem.innerText = String(h).padStart(2, '0');
+        if (mElem) mElem.innerText = String(m).padStart(2, '0');
+        if (sElem) sElem.innerText = String(s).padStart(2, '0');
       }
     }
     setInterval(updateCountdown, 1000);
@@ -1987,7 +2165,7 @@
 
         // Loading state
         submitBtn.disabled = true;
-        submitBtnText.textContent = 'Verifying Admission Eligibility...';
+        submitBtnText.textContent = 'Securing Pass...';
         submitBtnIcon.textContent = 'hourglass_empty';
 
         const newPassPayload = {
@@ -2016,7 +2194,7 @@
 
           if (res.status === 409 && data.existingPass) {
             submitBtn.disabled = false;
-            submitBtnText.textContent = 'Submit Seat Reservation Request';
+            submitBtnText.textContent = 'Confirm Reservation';
             submitBtnIcon.textContent = 'send';
             showToast(data.message, 'info');
             currentPassData = data.existingPass;
@@ -2026,7 +2204,7 @@
 
           if (res.status === 403) {
             submitBtn.disabled = false;
-            submitBtnText.textContent = 'Submit Seat Reservation Request';
+            submitBtnText.textContent = 'Confirm Reservation';
             submitBtnIcon.textContent = 'send';
             alert(data.message);
             return;
@@ -2055,7 +2233,7 @@
         renderPassModal(currentPassData);
 
         submitBtn.disabled = false;
-        submitBtnText.textContent = 'Submit Seat Reservation Request';
+        submitBtnText.textContent = 'Confirm Reservation';
         submitBtnIcon.textContent = 'send';
 
         showToast('Sanctuary Reservation Confirmed! Pass generated.', 'check_circle');
@@ -2292,5 +2470,7 @@ END:VCALENDAR`;
       }, 4000);
     }
   </script>
+  <!-- YouTube IFrame API for Todd Dulaney Official Worship Playback -->
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
