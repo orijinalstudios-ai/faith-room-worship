@@ -499,6 +499,53 @@ class FaithRoomCloudService {
 
     return { success: true, pass: payload, localOnly: true };
   }
+
+  /**
+   * Delete single Reservation from Firestore & IndexedDB
+   */
+  async deleteReservation(passId) {
+    try {
+      let stored = await window.FaithStorage.get('faith_reservations_store', []);
+      if (Array.isArray(stored)) {
+        stored = stored.filter(r => r.passId !== passId && r.id !== passId);
+        await window.FaithStorage.set('faith_reservations_store', stored);
+      }
+    } catch (e) {}
+
+    if (this.isAvailable()) {
+      try {
+        await this.db.collection('reservations').doc(passId).delete();
+        return { success: true };
+      } catch (err) {
+        console.error('[FaithRoomCloud] Failed to delete reservation from Firestore:', err);
+        return { success: false, error: err.message };
+      }
+    }
+
+    return { success: true, localOnly: true };
+  }
+
+  /**
+   * Clear all Reservations from Firestore & IndexedDB
+   */
+  async clearAllReservations() {
+    await window.FaithStorage.set('faith_reservations_store', []);
+
+    if (this.isAvailable()) {
+      try {
+        const snap = await this.db.collection('reservations').get();
+        const batch = this.db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        return { success: true };
+      } catch (err) {
+        console.error('[FaithRoomCloud] Failed to clear reservations in Firestore:', err);
+        return { success: false, error: err.message };
+      }
+    }
+
+    return { success: true, localOnly: true };
+  }
 }
 
 // Global instance attached to window

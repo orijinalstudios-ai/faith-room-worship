@@ -3,7 +3,7 @@ import defaultReservations from '../data/reservations.json' with { type: 'json' 
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Pragma, Cache-Control');
   res.setHeader('Access-Control-Expose-Headers', '*');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0');
@@ -101,6 +101,23 @@ export default async function handler(req, res) {
     await saveKvReservations(reservations);
 
     return res.status(201).json({ success: true, pass: passRecord });
+  }
+
+  if (req.method === 'DELETE') {
+    const id = req.query?.id || req.query?.passId;
+    let reservations = await getKvReservations();
+    if (!reservations) reservations = [...(defaultReservations || [])];
+
+    if (id) {
+      const initialCount = reservations.length;
+      reservations = reservations.filter(r => r.passId !== id && r.id !== id);
+      await saveKvReservations(reservations);
+      return res.status(200).json({ success: true, message: `Reservation ${id} deleted`, remaining: reservations.length, removed: initialCount - reservations.length });
+    }
+
+    // Bulk delete all reservations
+    await saveKvReservations([]);
+    return res.status(200).json({ success: true, message: 'All reservations cleared', remaining: 0 });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

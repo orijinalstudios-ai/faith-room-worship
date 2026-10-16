@@ -485,6 +485,24 @@ async function handleApi(req, res, pathname, parsedUrl) {
     return;
   }
 
+  // 6b. DELETE /api/reservations (Bulk delete all reservations OR delete by ?passId= / ?id=)
+  if (req.method === 'DELETE' && pathname === '/api/reservations') {
+    const id = parsedUrl.searchParams.get('id') || parsedUrl.searchParams.get('passId');
+    let reservations = await getCloudReservations();
+    if (id) {
+      const initialCount = reservations.length;
+      reservations = reservations.filter(r => r.passId !== id && r.id !== id);
+      await saveCloudReservations(reservations);
+      sendJson(200, { success: true, message: `Reservation ${id} deleted`, remaining: reservations.length, removed: initialCount - reservations.length });
+      return;
+    }
+
+    // Bulk delete all reservations
+    await saveCloudReservations([]);
+    sendJson(200, { success: true, message: 'All reservations cleared', remaining: 0 });
+    return;
+  }
+
   // 7. GET /api/stats (Dashboard statistics)
   if (req.method === 'GET' && pathname === '/api/stats') {
     const events = await getCloudEvents();

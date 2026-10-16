@@ -292,6 +292,10 @@
               <p class="text-xs text-text-muted mt-0.5">Physical seats are strictly capped at 30 persons per gathering. Online attendance is unlimited.</p>
             </div>
             <div class="flex items-center gap-3">
+              <button id="clearRosterBtn" type="button" class="px-3.5 py-2 bg-surface-elevated hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-500/60 font-label text-xs uppercase font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer" title="Clear all registrations from roster">
+                <span class="material-symbols-outlined text-sm">delete_sweep</span>
+                Clear Roster
+              </button>
               <button id="exportCsvBtn" class="px-4 py-2 bg-surface-elevated hover:bg-surface-border border border-surface-border text-text-primary font-label text-xs uppercase font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-sm text-primary">download</span>
                 Export to CSV
@@ -323,6 +327,7 @@
                   <th class="py-3 px-4">Gathering Session</th>
                   <th class="py-3 px-4">Attendance Type</th>
                   <th class="py-3 px-4">Registration Date</th>
+                  <th class="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody id="rsvpsTableBody" class="divide-y divide-surface-border/50 text-text-primary font-body">
@@ -717,44 +722,13 @@
       }
     ];
 
-    const DEFAULT_RESERVATIONS = [
-      {
-        passId: 'FRW-8821-LAG',
-        name: 'David Oluwatobi',
-        email: 'david@worshipmail.com',
-        phone: '+234 802 345 6789',
-        event: 'The Upper Room Encounter Vol. 2',
-        type: 'In-Person Sanctuary (Strict 30 Cap)',
-        createdAt: '2026-10-14T08:15:00.000Z'
-      },
-      {
-        passId: 'FRW-4190-LAG',
-        name: 'Sarah Adeyemi',
-        email: 'sarah.a@faithroom.org',
-        phone: '+234 809 111 2233',
-        event: 'Outpouring & Overflow Session',
-        type: 'In-Person Sanctuary (Strict 30 Cap)',
-        createdAt: '2026-10-14T08:30:00.000Z'
-      },
-      {
-        passId: 'FRW-1204-GB',
-        name: 'Jonathan Miller',
-        email: 'jmiller@worshipstream.co.uk',
-        phone: '+44 7700 900123',
-        event: 'The Upper Room Encounter Vol. 2',
-        type: 'Online Stream VIP Access (Unlimited)',
-        createdAt: '2026-10-14T08:45:00.000Z'
-      },
-      {
-        passId: 'FRW-7732-US',
-        name: 'Grace Washington',
-        email: 'grace.w@sanctuaryreach.com',
-        phone: '+1 404 555 0199',
-        event: 'Outpouring & Overflow Session',
-        type: 'Online Stream VIP Access (Unlimited)',
-        createdAt: '2026-10-14T09:00:00.000Z'
-      }
-    ];
+    const DEFAULT_RESERVATIONS = [];
+
+    // Known demo IDs to filter out automatically if previously cached
+    const DEMO_PASS_IDS = new Set([
+      'FRW-8821-LAG', 'FRW-4190-LAG', 'FRW-1204-GB', 'FRW-7732-US',
+      'FRW-9787-LAG', 'FRW-3087-LAG', 'FRW-1042-LAG', 'FRW-2894-LAG'
+    ]);
 
     // Load Data (Multi-Tier Resilient Strategy: IndexedDB -> Cloud Firestore -> LocalStorage -> API -> Defaults)
     async function loadAllDashboardData() {
@@ -769,10 +743,13 @@
         currentEvents = [];
       }
 
-      if (localReservations && Array.isArray(localReservations) && localReservations.length > 0) {
-        currentReservations = localReservations;
+      if (Array.isArray(localReservations)) {
+        currentReservations = localReservations.filter(r => !DEMO_PASS_IDS.has(r.passId));
+        if (currentReservations.length !== localReservations.length) {
+          safeStorage.set('faith_reservations_store', currentReservations);
+        }
       } else {
-        currentReservations = DEFAULT_RESERVATIONS;
+        currentReservations = [];
       }
 
       updateStatsUI();
@@ -795,7 +772,7 @@
 
         FaithRoomCloud.listenReservations((cloudRes) => {
           if (Array.isArray(cloudRes)) {
-            currentReservations = cloudRes;
+            currentReservations = cloudRes.filter(r => !DEMO_PASS_IDS.has(r.passId));
             updateStatsUI();
             renderRsvpsUI();
           }
@@ -842,10 +819,11 @@
           if (resRes.ok) {
             const data = await resRes.json();
             if (Array.isArray(data)) {
+              const cleaned = data.filter(r => !DEMO_PASS_IDS.has(r.passId));
               const currentResStr = JSON.stringify(currentReservations || []);
-              const incomingResStr = JSON.stringify(data);
+              const incomingResStr = JSON.stringify(cleaned);
               if (currentResStr !== incomingResStr) {
-                currentReservations = data;
+                currentReservations = cleaned;
                 await safeStorage.set('faith_reservations_store', currentReservations);
                 updateStatsUI();
                 renderRsvpsUI();
@@ -1451,7 +1429,7 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-text-muted">No reservations found matching criteria.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-text-muted">No reservations found matching criteria.</td></tr>`;
         return;
       }
 
@@ -1470,8 +1448,82 @@
             </span>
           </td>
           <td class="py-3 px-4 text-text-muted font-mono text-[11px]">${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'Confirmed'}</td>
+          <td class="py-3 px-4 text-right">
+            <button type="button" class="p-1.5 text-text-muted hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer delete-rsvp-btn" data-pass-id="${r.passId}" title="Delete reservation">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </td>
         `;
         tbody.appendChild(row);
+      });
+
+      // Attach delete listeners to each row
+      tbody.querySelectorAll('.delete-rsvp-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const passId = btn.getAttribute('data-pass-id');
+          if (passId) executeDeleteReservation(passId);
+        });
+      });
+    }
+
+    // Delete single reservation
+    function executeDeleteReservation(passId) {
+      const target = currentReservations.find(r => r.passId === passId);
+      const name = target ? target.name : passId;
+
+      requestConfirmation({
+        title: 'Delete Attendee Reservation?',
+        message: `Are you sure you want to remove reservation ${passId} for "${name}" from the roster?`,
+        proceedText: 'Delete Reservation',
+        icon: 'delete',
+        onConfirm: async () => {
+          currentReservations = currentReservations.filter(r => r.passId !== passId);
+          updateStatsUI();
+          renderRsvpsUI();
+          showAdminToast(`Reservation ${passId} removed.`);
+
+          await safeStorage.set('faith_reservations_store', currentReservations);
+
+          if (window.FaithRoomCloud) {
+            FaithRoomCloud.deleteReservation(passId).catch(() => {});
+          }
+          fetch(`/api/reservations?id=${encodeURIComponent(passId)}`, { method: 'DELETE' }).catch(() => {});
+        }
+      });
+    }
+
+    // Clear All Reservations Button Handler
+    const clearRosterBtn = document.getElementById('clearRosterBtn');
+    if (clearRosterBtn) {
+      clearRosterBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (currentReservations.length === 0) {
+          showAdminToast('No reservations to clear.');
+          return;
+        }
+
+        requestConfirmation({
+          title: 'Clear Sanctuary Attendance Roster?',
+          message: `Are you sure you want to clear ALL (${currentReservations.length}) registrations from the roster? This will permanently delete all attendee records from this device, cloud storage, and Firestore.`,
+          proceedText: 'Clear Roster',
+          icon: 'delete_sweep',
+          onConfirm: async () => {
+            currentReservations = [];
+            updateStatsUI();
+            renderRsvpsUI();
+            showAdminToast('Attendance roster cleared.');
+
+            await safeStorage.set('faith_reservations_store', []);
+
+            if (window.FaithRoomCloud) {
+              FaithRoomCloud.clearAllReservations().catch(() => {});
+            }
+            fetch('/api/reservations', { method: 'DELETE' }).catch(() => {});
+          }
+        });
       });
     }
 
